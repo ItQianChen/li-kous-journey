@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>力扣征途 - 四轮进阶算法修炼之路</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- 登录界面 -->
+    <div id="loginPage" class="page active">
+        <div class="login-container">
+            <h1>🎯 力扣征途</h1>
+            <p class="login-subtitle">四轮进阶 · 系统化算法修炼</p>
+            <div class="login-box">
+                <h2>欢迎回来</h2>
+                <input type="text" id="username" placeholder="请输入用户名" maxlength="20">
+                <button onclick="login()" class="btn-primary">开始刷题之旅</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主界面 -->
+    <div id="mainPage" class="page">
+        <!-- 头部导航 -->
+        <header class="header">
+            <div class="header-content">
+                <h1>🎯 力扣征途</h1>
+                <div class="user-info">
+                    <span id="currentUser"></span>
+                    <button onclick="showTipsMenu()" class="btn-tips">💡 刷题技巧</button>
+                    <button onclick="showDataMenu()" class="btn-data">💾 数据</button>
+                    <button onclick="logout()" class="btn-logout">退出登录</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- 数据管理提醒横幅 -->
+        <div class="data-notice" id="dataNotice">
+            <div class="notice-content">
+                <span class="notice-icon">⚠️</span>
+                <span class="notice-text">数据仅保存在本地浏览器，建议定期备份！</span>
+                <button onclick="exportProgress()" class="notice-btn">📥 导出数据</button>
+                <button onclick="closeNotice()" class="notice-close">✕</button>
+            </div>
+        </div>
+
+        <!-- 统计面板 -->
+        <div class="stats-panel">
+            <div class="stat-card">
+                <div class="stat-number" id="currentRound">第一轮</div>
+                <div class="stat-label">当前进度</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalSolved">0</div>
+                <div class="stat-label">已完成题目</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalProblems">0</div>
+                <div class="stat-label">总题目数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="completionRate">0%</div>
+                <div class="stat-label">完成率</div>
+            </div>
+        </div>
+
+        <!-- 轮次选择 -->
+        <div class="round-selector">
+            <button class="round-btn active" onclick="selectRound(1)">第一轮 (简单 50%+)</button>
+            <button class="round-btn" onclick="selectRound(2)">第二轮 (中等 50%+)</button>
+            <button class="round-btn" onclick="selectRound(3)">第三轮 (算法理论)</button>
+            <button class="round-btn" onclick="selectRound(4)">第四轮 (困难)</button>
+        </div>
+
+        <!-- 题目分类面板 -->
+        <div id="categoriesContainer" class="categories-container">
+            <!-- 动态生成 -->
+        </div>
+
+        <!-- 题目列表 -->
+        <div id="problemsContainer" class="problems-container">
+            <!-- 动态生成 -->
+        </div>
+
+        <!-- 刷题技巧弹窗 -->
+        <div class="modal" id="tipsModal">
+            <div class="modal-content tips-modal">
+                <div class="modal-header">
+                    <h2>💡 刷题技巧</h2>
+                    <button onclick="closeTipsMenu()" class="modal-close">✕</button>
+                </div>
+                <div class="modal-body">
+                    <div class="tips-intro">
+                        <p>建议刷题的时候分成四轮来刷，不用想着第一次就把单个分类的全部刷完。</p>
+                    </div>
+
+                    <div class="tip-section">
+                        <div class="tip-header">
+                            <span class="tip-badge round1">第一轮</span>
+                            <span class="tip-title">基础入门</span>
+                        </div>
+                        <p class="tip-content">按照 <strong>数学 > 数组 > 链表 > 字符串 > 哈希表 > 双指针 > 递归 > 栈 > 队列</strong> 的顺序，主要刷：<span class="highlight">难度简单，通过率在50%以上的题目</span>。</p>
+                    </div>
+
+                    <div class="tip-section">
+                        <div class="tip-header">
+                            <span class="tip-badge round2">第二轮</span>
+                            <span class="tip-title">进阶提升</span>
+                        </div>
+                        <p class="tip-content">按照 <strong>数学 > 数组 > 链表 > 字符串 > 哈希表 > 双指针 > 递归 > 栈 > 队列</strong> 的顺序，主要刷：<span class="highlight">难度中等，通过率在50%以上的题目</span>。</p>
+                    </div>
+
+                    <div class="tip-section">
+                        <div class="tip-header">
+                            <span class="tip-badge round3">第三轮</span>
+                            <span class="tip-title">算法理论</span>
+                        </div>
+                        <p class="tip-content">⚠️ <strong>先不要急着刷题！</strong>建议找个视频，把相关算法理论看一遍，比如：什么是分治，什么是贪心，什么是动态规划，什么是二叉搜索树，什么是图等概念。</p>
+                        <p class="tip-content">再把 <strong>树 > 图与回溯算法 > 贪心 > 动态规划</strong> 这些刷一遍，刷的时候还是刷<span class="highlight">简单或者中等，通过率50%以上的题目</span>。</p>
+                    </div>
+
+                    <div class="tip-section">
+                        <div class="tip-header">
+                            <span class="tip-badge round4">第四轮</span>
+                            <span class="tip-title">困难挑战</span>
+                        </div>
+                        <p class="tip-content">第四轮就比较难了，可以刷剩余困难的，还有以前没刷的，<span class="highlight">通过率低于50%的题目</span>。但是这一轮会非常的难，难以坚持下去。</p>
+                        <p class="tip-content">💪 坚持就是胜利！</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 数据管理弹窗 -->
+        <div class="modal" id="dataModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>💾 数据管理</h2>
+                    <button onclick="closeDataMenu()" class="modal-close">✕</button>
+                </div>
+                <div class="modal-body">
+                    <div class="data-info">
+                        <p>📍 <strong>数据存储位置：</strong>浏览器本地存储 (localStorage)</p>
+                        <p>⚠️ <strong>重要提示：</strong>清除浏览器缓存会丢失所有数据</p>
+                        <p>💡 <strong>建议：</strong>定期导出备份数据，避免数据丢失</p>
+                    </div>
+                    <div class="data-actions">
+                        <button onclick="exportProgress()" class="action-btn export-btn">
+                            <span class="btn-icon">📥</span>
+                            <span class="btn-text">导出数据</span>
+                            <span class="btn-desc">将进度保存为 JSON 文件</span>
+                        </button>
+                        <button onclick="triggerImport()" class="action-btn import-btn">
+                            <span class="btn-icon">📤</span>
+                            <span class="btn-text">导入数据</span>
+                            <span class="btn-desc">从 JSON 文件恢复进度</span>
+                        </button>
+                        <input type="file" id="importFile" accept=".json" style="display: none;" onchange="handleImport(event)">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
