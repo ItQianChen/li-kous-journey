@@ -28,6 +28,7 @@
                 <h1>🎯 力扣征途</h1>
                 <div class="user-info">
                     <span id="currentUser"></span>
+                    <button onclick="toggleCalendar()" class="btn-calendar">📅 日历</button>
                     <button onclick="showTipsMenu()" class="btn-tips">💡 刷题技巧</button>
                     <button onclick="showDataMenu()" class="btn-data">💾 数据</button>
                     <button onclick="logout()" class="btn-logout">退出登录</button>
@@ -81,6 +82,63 @@
         <!-- 题目列表 -->
         <div id="problemsContainer" class="problems-container">
             <!-- 动态生成 -->
+        </div>
+
+        <!-- 日历弹窗 -->
+        <div class="modal" id="calendarModal">
+            <div class="modal-content calendar-modal">
+                <div class="modal-header">
+                    <h2>📅 刷题日历</h2>
+                    <button onclick="closeCalendar()" class="modal-close">✕</button>
+                </div>
+                <div class="modal-body">
+                    <div class="calendar-nav-bar">
+                        <button onclick="previousMonth()" class="calendar-nav-btn">◀</button>
+                        <span id="currentMonth" class="current-month"></span>
+                        <button onclick="nextMonth()" class="calendar-nav-btn">▶</button>
+                    </div>
+                    <div class="calendar-grid" id="calendarGrid">
+                        <!-- 动态生成日历 -->
+                    </div>
+                    <div class="calendar-legend">
+                        <div class="legend-item">
+                            <span class="legend-dot no-activity"></span>
+                            <span>无打卡</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot low-activity"></span>
+                            <span>1-2题</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot medium-activity"></span>
+                            <span>3-5题</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot high-activity"></span>
+                            <span>6+题</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot today"></span>
+                            <span>今天</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 日期详情弹窗 -->
+        <div class="modal" id="dateDetailModal">
+            <div class="modal-content date-detail-modal">
+                <div class="modal-header">
+                    <h2 id="dateDetailTitle">📝 打卡详情</h2>
+                    <button onclick="closeDateDetail()" class="modal-close">✕</button>
+                </div>
+                <div class="modal-body">
+                    <div id="dateDetailContent" class="date-detail-content">
+                        <!-- 动态生成详情内容 -->
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- 刷题技巧弹窗 -->

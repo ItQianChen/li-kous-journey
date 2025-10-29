@@ -6,6 +6,11 @@ let currentRound = 1;
 let selectedCategory = null;
 let userProgress = {};
 
+// 日历相关变量
+let currentDate = new Date();
+let currentMonth = currentDate.getMonth();
+let currentYear = currentDate.getFullYear();
+
 // 初始化
 document.addEventListener('DOMContentLoaded', function() {
     loadProblemsData();
@@ -156,6 +161,7 @@ function showMainPage() {
     document.getElementById('currentUser').textContent = `👤 ${currentUser}`;
     checkNoticeVisibility();
     selectRound(currentRound);
+    renderCalendar(); // 渲染日历
 }
 
 // 加载用户进度
@@ -371,6 +377,7 @@ function toggleProblem(roundKey, problemNum, element) {
     saveUserProgress();
     updateStats();
     renderCategories();
+    renderCalendar(); // 更新日历显示
 }
 
 // 更新统计数据
@@ -510,15 +517,241 @@ function handleImport(event) {
     event.target.value = '';
 }
 
+// 打开日历弹窗
+function toggleCalendar() {
+    document.getElementById('calendarModal').classList.add('active');
+    renderCalendar();
+}
+
+// 关闭日历弹窗
+function closeCalendar() {
+    document.getElementById('calendarModal').classList.remove('active');
+}
+
+// 日历功能函数
+function renderCalendar() {
+    const grid = document.getElementById('calendarGrid');
+    const monthDisplay = document.getElementById('currentMonth');
+
+    // 更新月份显示
+    const monthNames = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'];
+    monthDisplay.textContent = `${currentYear}年 ${monthNames[currentMonth]}`;
+
+    // 清空日历网格
+    grid.innerHTML = '';
+
+    // 获取当月第一天和最后一天
+    const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+    // 添加空白格子（月初前的空白）
+    for (let i = 0; i < firstDay; i++) {
+        const emptyDay = document.createElement('div');
+        emptyDay.className = 'calendar-day other-month';
+        grid.appendChild(emptyDay);
+    }
+
+    // 添加当月日期
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dayElement = document.createElement('div');
+        dayElement.className = 'calendar-day';
+
+        const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const activity = getDailyActivity(dateStr);
+
+        // 检查是否是今天
+        const today = new Date();
+        const isToday = day === today.getDate() &&
+                        currentMonth === today.getMonth() &&
+                        currentYear === today.getFullYear();
+
+        if (isToday) {
+            dayElement.classList.add('today');
+        }
+
+        // 根据题目数量添加不同的样式
+        if (activity && activity.count > 0) {
+            if (activity.count >= 6) {
+                dayElement.classList.add('high-activity');
+            } else if (activity.count >= 3) {
+                dayElement.classList.add('medium-activity');
+            } else {
+                dayElement.classList.add('low-activity');
+            }
+        }
+
+        // 设置日期内容
+        dayElement.innerHTML = `
+            <div class="calendar-day-number">${day}</div>
+            ${activity && activity.count > 0 ? `<div class="calendar-day-count">${activity.count}题</div>` : ''}
+        `;
+
+        // 添加点击事件显示详情
+        dayElement.onclick = () => showDateDetail(dateStr, activity);
+
+        grid.appendChild(dayElement);
+    }
+
+    // 添加下月空白格子
+    const totalCells = firstDay + daysInMonth;
+    const remainingCells = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+    for (let i = 0; i < remainingCells; i++) {
+        const emptyDay = document.createElement('div');
+        emptyDay.className = 'calendar-day other-month';
+        grid.appendChild(emptyDay);
+    }
+}
+
+// 获取某天的打卡活动
+function getDailyActivity(dateStr) {
+    let totalSolved = 0;
+    const problems = [];
+
+    // 遍历所有轮次的打卡记录
+    Object.keys(userProgress).forEach(roundKey => {
+        if (userProgress[roundKey]) {
+            Object.entries(userProgress[roundKey]).forEach(([problemId, progress]) => {
+                if (progress.solvedAt) {
+                    const solvedDate = new Date(progress.solvedAt).toISOString().split('T')[0];
+                    if (solvedDate === dateStr) {
+                        totalSolved++;
+
+                        // 获取题目详细信息
+                        const problemInfo = allProblems.find(p => p.id.toString() === problemId);
+                        if (problemInfo) {
+                            problems.push({
+                                id: problemId,
+                                round: roundKey,
+                                difficulty: problemInfo.difficulty,
+                                category: problemInfo.category,
+                                solvedAt: progress.solvedAt
+                            });
+                        }
+                    }
+                }
+            });
+        }
+    });
+
+    return { count: totalSolved, problems: problems };
+}
+
+// 显示日期详情
+function showDateDetail(dateStr, activity) {
+    if (!activity || activity.count === 0) {
+        return; // 没有打卡记录不显示
+    }
+
+    const modal = document.getElementById('dateDetailModal');
+    const title = document.getElementById('dateDetailTitle');
+    const content = document.getElementById('dateDetailContent');
+
+    // 格式化日期显示
+    const date = new Date(dateStr);
+    const formattedDate = `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+    title.textContent = `📝 ${formattedDate} - 共完成 ${activity.count} 题`;
+
+    // 按轮次分组题目
+    const problemsByRound = {
+        round1: [],
+        round2: [],
+        round3: [],
+        round4: []
+    };
+
+    activity.problems.forEach(problem => {
+        problemsByRound[problem.round].push(problem);
+    });
+
+    // 生成详情内容
+    let html = '';
+    const roundNames = {
+        round1: '第一轮',
+        round2: '第二轮',
+        round3: '第三轮',
+        round4: '第四轮'
+    };
+
+    Object.keys(problemsByRound).forEach(roundKey => {
+        const problems = problemsByRound[roundKey];
+        if (problems.length > 0) {
+            html += `
+                <div class="round-section">
+                    <h3 class="round-title ${roundKey}">${roundNames[roundKey]}</h3>
+                    <div class="problems-list">
+            `;
+
+            problems.forEach(problem => {
+                const difficultyClass = problem.difficulty === '简单' ? 'easy' :
+                                       problem.difficulty === '中等' ? 'medium' : 'hard';
+                html += `
+                    <div class="problem-detail-item">
+                        <span class="problem-number">${problem.id}</span>
+                        <span class="problem-category">${problem.category}</span>
+                        <span class="problem-difficulty ${difficultyClass}">${problem.difficulty}</span>
+                        <button class="copy-problem-btn" onclick="copyProblemId('${problem.id}', event)" title="复制题号">
+                            📋
+                        </button>
+                    </div>
+                `;
+            });
+
+            html += `
+                    </div>
+                </div>
+            `;
+        }
+    });
+
+    content.innerHTML = html;
+    modal.classList.add('active');
+}
+
+// 关闭日期详情弹窗
+function closeDateDetail() {
+    document.getElementById('dateDetailModal').classList.remove('active');
+}
+
+// 上一个月
+function previousMonth() {
+    currentMonth--;
+    if (currentMonth < 0) {
+        currentMonth = 11;
+        currentYear--;
+    }
+    renderCalendar();
+}
+
+// 下一个月
+function nextMonth() {
+    currentMonth++;
+    if (currentMonth > 11) {
+        currentMonth = 0;
+        currentYear++;
+    }
+    renderCalendar();
+}
+
 // 点击弹窗外部关闭
 document.addEventListener('click', function(e) {
     const dataModal = document.getElementById('dataModal');
     const tipsModal = document.getElementById('tipsModal');
+    const calendarModal = document.getElementById('calendarModal');
+    const dateDetailModal = document.getElementById('dateDetailModal');
 
     if (e.target === dataModal) {
         closeDataMenu();
     }
+
     if (e.target === tipsModal) {
         closeTipsMenu();
+    }
+
+    if (e.target === calendarModal) {
+        closeCalendar();
+    }
+
+    if (e.target === dateDetailModal) {
+        closeDateDetail();
     }
 });
