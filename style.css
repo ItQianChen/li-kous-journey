@@ -445,20 +445,20 @@ body {
 
 .problems-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 1rem;
 }
 
 .problem-wrapper {
     position: relative;
-    aspect-ratio: 1;
+    min-height: 80px;
 }
 
 .problem-item {
     width: 100%;
     height: 100%;
     display: flex;
-    align-items: center;
+    align-items: stretch;
     justify-content: center;
     background: #f5f5f5;
     border: 2px solid #e0e0e0;
@@ -468,6 +468,36 @@ body {
     transition: all 0.2s;
     font-size: 0.9rem;
     color: #666;
+    padding: 0.8rem;
+}
+
+.problem-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+    gap: 0.3rem;
+}
+
+.problem-number {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #667eea;
+}
+
+.problem-title {
+    font-size: 0.75rem;
+    color: #555;
+    line-height: 1.2;
+    font-weight: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: break-word;
 }
 
 .problem-item:hover {
@@ -479,6 +509,14 @@ body {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border-color: transparent;
+}
+
+.problem-item.solved .problem-number {
+    color: white;
+}
+
+.problem-item.solved .problem-title {
+    color: rgba(255, 255, 255, 0.95);
 }
 
 .problem-item.solved::after {
@@ -549,7 +587,7 @@ body {
     }
 
     .problems-grid {
-        grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     }
 }
 
@@ -1094,13 +1132,22 @@ body {
     font-weight: bold;
     color: #667eea;
     min-width: 55px;
+    flex-shrink: 0;
+}
+
+.problem-title-detail {
+    flex: 1;
+    color: #333;
+    font-weight: 500;
+    font-size: 0.95rem;
+    line-height: 1.3;
 }
 
 .problem-category {
-    flex: 1;
-    color: #555;
+    color: #666;
     font-weight: 500;
-    font-size: 0.95rem;
+    font-size: 0.85rem;
+    flex-shrink: 0;
 }
 
 .problem-difficulty {

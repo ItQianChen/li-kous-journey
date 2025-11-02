@@ -276,6 +276,9 @@ function renderProblems() {
     const grid = document.getElementById('problemsGrid');
 
     selectedCategory.problems.forEach(problemNum => {
+        // 获取题目详细信息
+        const problemInfo = allProblems.find(p => p.id.toString() === problemNum.toString());
+
         const wrapper = document.createElement('div');
         wrapper.className = 'problem-wrapper';
 
@@ -287,7 +290,25 @@ function renderProblems() {
             item.classList.add('solved');
         }
 
-        item.textContent = problemNum;
+        // 创建题目内容容器
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'problem-content';
+
+        // 题号
+        const numberDiv = document.createElement('div');
+        numberDiv.className = 'problem-number';
+        numberDiv.textContent = problemNum;
+
+        // 题目标题
+        const titleDiv = document.createElement('div');
+        titleDiv.className = 'problem-title';
+        titleDiv.textContent = problemInfo ? problemInfo.title : '';
+        titleDiv.title = problemInfo ? `${problemNum}. ${problemInfo.title}` : `题目 ${problemNum}`;
+
+        contentDiv.appendChild(numberDiv);
+        contentDiv.appendChild(titleDiv);
+        item.appendChild(contentDiv);
+
         item.title = `点击打卡题目 ${problemNum}`;
 
         item.onclick = (e) => {
@@ -682,11 +703,16 @@ function showDateDetail(dateStr, activity) {
             `;
 
             problems.forEach(problem => {
+                // 获取题目完整信息
+                const problemInfo = allProblems.find(p => p.id.toString() === problem.id.toString());
+                const problemTitle = problemInfo ? problemInfo.title : '';
+
                 const difficultyClass = problem.difficulty === '简单' ? 'easy' :
                                        problem.difficulty === '中等' ? 'medium' : 'hard';
                 html += `
                     <div class="problem-detail-item">
                         <span class="problem-number">${problem.id}</span>
+                        <span class="problem-title-detail">${problemTitle}</span>
                         <span class="problem-category">${problem.category}</span>
                         <span class="problem-difficulty ${difficultyClass}">${problem.difficulty}</span>
                         <button class="copy-problem-btn" onclick="copyProblemId('${problem.id}', event)" title="复制题号">
@@ -755,3 +781,42 @@ document.addEventListener('click', function(e) {
         closeDateDetail();
     }
 });
+
+// 复制题目ID到剪贴板（用于日期详情弹窗）
+function copyProblemId(problemId, event) {
+    event.stopPropagation();
+    const button = event.target;
+
+    navigator.clipboard.writeText(problemId).then(() => {
+        // 显示复制成功反馈
+        const originalText = button.innerHTML;
+        button.innerHTML = '✓';
+        button.classList.add('copied');
+
+        setTimeout(() => {
+            button.innerHTML = originalText;
+            button.classList.remove('copied');
+        }, 1000);
+    }).catch(err => {
+        // 如果剪贴板API不可用，使用备用方案
+        const textArea = document.createElement('textarea');
+        textArea.value = problemId;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            const originalText = button.innerHTML;
+            button.innerHTML = '✓';
+            button.classList.add('copied');
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.classList.remove('copied');
+            }, 1000);
+        } catch (err) {
+            alert('复制失败，请手动复制');
+        }
+        document.body.removeChild(textArea);
+    });
+}
