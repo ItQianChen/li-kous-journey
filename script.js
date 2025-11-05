@@ -780,6 +780,11 @@ document.addEventListener('click', function(e) {
     if (e.target === dateDetailModal) {
         closeDateDetail();
     }
+
+    const categoryChoiceModal = document.getElementById('categoryChoiceModal');
+    if (e.target === categoryChoiceModal) {
+        closeCategoryChoiceModal();
+    }
 });
 
 // 复制题目ID到剪贴板（用于日期详情弹窗）
@@ -819,4 +824,202 @@ function copyProblemId(problemId, event) {
         }
         document.body.removeChild(textArea);
     });
+}
+
+// --- 搜索功能 ---
+
+// 搜索题目
+function searchProblems() {
+    const query = document.getElementById('searchInput').value.toLowerCase();
+    const resultsContainer = document.getElementById('searchResults');
+
+    if (query.length < 1) {
+        resultsContainer.innerHTML = '';
+        resultsContainer.classList.remove('active');
+        return;
+    }
+
+    const filteredProblems = allProblems.filter(p =>
+        p.id.toString().includes(query) || p.title.toLowerCase().includes(query)
+    );
+
+    // 对结果进行去重
+    const uniqueProblems = Array.from(new Map(filteredProblems.map(p => [p.id, p])).values());
+
+    // 按匹配度排序
+    uniqueProblems.sort((a, b) => {
+        const aId = a.id.toString();
+        const bId = b.id.toString();
+        const aTitle = a.title.toLowerCase();
+        const bTitle = b.title.toLowerCase();
+
+        // 规则1: 完全匹配题号
+        if (aId === query && bId !== query) return -1;
+        if (bId === query && aId !== query) return 1;
+
+        // 规则2: 题号开头匹配
+        const aStarts = aId.startsWith(query);
+        const bStarts = bId.startsWith(query);
+        if (aStarts && !bStarts) return -1;
+        if (bStarts && !aStarts) return 1;
+
+        // 规则3: 标题包含（这里可以进一步优化，但目前保持简单）
+        // (如果需要更复杂的标题匹配度，可以在这里添加)
+
+        return 0; // 保持原有顺序
+    });
+
+    const resultsToShow = uniqueProblems.slice(0, 10);
+
+    if (resultsToShow.length > 0) {
+        resultsContainer.innerHTML = resultsToShow.map(p => {
+            const locations = findProblemLocations(p.id);
+            let locationInfo = '';
+            if (locations.length === 1) {
+                const loc = locations[0];
+                const roundName = problemsData[loc.roundKey].name.split(' ')[0];
+                locationInfo = `<span class="search-category" title="${roundName} - ${loc.category}">${roundName} - ${loc.category}</span>`;
+            } else if (locations.length > 1) {
+                locationInfo = `<span class="search-category multiple" title="该题目存在于多个分类中">多个分类</span>`;
+            }
+
+            return `
+                <div class="search-result-item" onmousedown="selectProblem(${p.id})" title="${p.id}. ${p.title}">
+                    <span class="search-id">${p.id}</span>
+                    <span class="search-title">${p.title}</span>
+                    ${locationInfo}
+                </div>
+            `;
+        }).join('');
+        resultsContainer.classList.add('active');
+    } else {
+        resultsContainer.innerHTML = '<div class="search-no-results">无匹配结果</div>';
+        resultsContainer.classList.add('active');
+    }
+}
+
+// 选择一个搜索结果
+function selectProblem(problemId) {
+    const locations = findProblemLocations(problemId);
+
+    if (locations.length === 0) {
+        alert('未找到该题目所属的分类。');
+        return;
+    }
+
+    if (locations.length === 1) {
+        const loc = locations[0];
+        navigateToProblem(loc.round, loc.category, problemId);
+    } else {
+        // 如果题目存在于多个分类，让用户选择
+        openCategoryChoiceModal(locations, problemId);
+    }
+    document.getElementById('searchInput').value = '';
+    hideSearchResults();
+}
+
+// 查找题目所在的所有位置（轮次和分类）
+function findProblemLocations(problemId) {
+    const locations = [];
+    ['round1', 'round2', 'round3', 'round4'].forEach((roundKey, roundIndex) => {
+        const roundData = problemsData[roundKey];
+        roundData.categories.forEach(category => {
+            if (category.problems.includes(problemId) || category.problems.includes(problemId.toString())) {
+                locations.push({
+                    round: roundIndex + 1,
+                    category: category.name,
+                    roundKey: roundKey
+                });
+            }
+        });
+    });
+    return locations;
+}
+
+// 跳转到指定的题目
+async function navigateToProblem(round, categoryName, problemId) {
+    // 1. 切换到正确的轮次
+    if (currentRound !== round) {
+        selectRound(round);
+    }
+
+    // 2. 找到并激活对应的分类卡片
+    const categoryCards = document.querySelectorAll('.category-card');
+    let targetCard = null;
+    categoryCards.forEach(card => {
+        const cardCategoryName = card.querySelector('.category-name').textContent;
+        if (cardCategoryName === categoryName) {
+            targetCard = card;
+        }
+    });
+
+    if (targetCard) {
+        if (!targetCard.classList.contains('active')) {
+            targetCard.click();
+        }
+
+        // 等待题目列表渲染完成
+        setTimeout(() => {
+            // 3. 滚动到并高亮显示题目
+            const problemItems = document.querySelectorAll('.problem-item');
+            problemItems.forEach(item => {
+                const numberDiv = item.querySelector('.problem-number');
+                if (numberDiv && numberDiv.textContent == problemId) {
+                    item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                    // 添加高亮效果
+                    item.classList.add('highlight');
+                    setTimeout(() => {
+                        item.classList.remove('highlight');
+                    }, 2000); // 2秒后移除高亮
+                }
+            });
+        }, 100); // 延迟以确保DOM更新
+    }
+}
+
+// 打开分类选择弹窗
+function openCategoryChoiceModal(locations, problemId) {
+    const modal = document.getElementById('categoryChoiceModal');
+    const content = document.getElementById('categoryChoiceContent');
+
+    content.innerHTML = `
+        <p>题目 <strong>${problemId}</strong> 存在于多个分类中，请选择要跳转的位置：</p>
+        <div class="category-choices">
+            ${locations.map(loc => `
+                <button class="choice-btn" onclick="handleCategoryChoice(${loc.round}, '${loc.category}', ${problemId})">
+                    <span class="choice-round round${loc.round}">${problemsData[loc.roundKey].name.split(' ')[0]}</span>
+                    <span class="choice-category">${loc.category}</span>
+                </button>
+            `).join('')}
+        </div>
+    `;
+
+    modal.classList.add('active');
+}
+
+// 处理分类选择
+function handleCategoryChoice(round, categoryName, problemId) {
+    navigateToProblem(round, categoryName, problemId);
+    closeCategoryChoiceModal();
+}
+
+// 关闭分类选择弹窗
+function closeCategoryChoiceModal() {
+    document.getElementById('categoryChoiceModal').classList.remove('active');
+}
+
+// 显示/隐藏搜索结果
+function showSearchResults() {
+    const input = document.getElementById('searchInput');
+    if (input.value) {
+        document.getElementById('searchResults').classList.add('active');
+    }
+}
+
+function hideSearchResults() {
+    // 延迟隐藏，以便点击事件可以触发
+    setTimeout(() => {
+        document.getElementById('searchResults').classList.remove('active');
+    }, 200);
 }

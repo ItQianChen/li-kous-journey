@@ -26,6 +26,10 @@
         <header class="header">
             <div class="header-content">
                 <h1>🎯 力扣征途</h1>
+                <div class="search-container">
+                    <input type="text" id="searchInput" placeholder="搜索题号或标题..." oninput="searchProblems()" onfocus="showSearchResults()" onblur="hideSearchResults()">
+                    <div id="searchResults" class="search-results"></div>
+                </div>
                 <div class="user-info">
                     <span id="currentUser"></span>
                     <button onclick="toggleCalendar()" class="btn-calendar">📅 日历</button>
@@ -216,6 +220,19 @@
                         </button>
                         <input type="file" id="importFile" accept=".json" style="display: none;" onchange="handleImport(event)">
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 分类选择弹窗 -->
+        <div class="modal" id="categoryChoiceModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>选择分类</h2>
+                    <button onclick="closeCategoryChoiceModal()" class="modal-close">✕</button>
+                </div>
+                <div class="modal-body" id="categoryChoiceContent">
+                    <!-- 动态生成分类选项 -->
                 </div>
             </div>
         </div>
