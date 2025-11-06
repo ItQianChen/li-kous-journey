@@ -309,6 +309,19 @@ function renderProblems() {
         contentDiv.appendChild(titleDiv);
         item.appendChild(contentDiv);
 
+        // 如果题目有 URL，添加跳转按钮
+        if (problemInfo && problemInfo.url) {
+            const linkBtn = document.createElement('button');
+            linkBtn.className = 'link-btn';
+            linkBtn.innerHTML = '🔗';
+            linkBtn.title = '跳转到题目页面';
+            linkBtn.onclick = (e) => {
+                e.stopPropagation();
+                window.open(problemInfo.url, '_blank');
+            };
+            item.appendChild(linkBtn);
+        }
+
         item.title = `点击打卡题目 ${problemNum}`;
 
         item.onclick = (e) => {
@@ -334,38 +347,25 @@ function renderProblems() {
 
 // 复制题号到剪贴板
 function copyProblemNumber(problemNum, button) {
-    navigator.clipboard.writeText(problemNum).then(() => {
-        // 显示复制成功反馈
+    const textArea = document.createElement('textarea');
+    textArea.value = problemNum;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.select();
+    try {
+        document.execCommand('copy');
         const originalText = button.innerHTML;
         button.innerHTML = '✓';
         button.classList.add('copied');
-
         setTimeout(() => {
             button.innerHTML = originalText;
             button.classList.remove('copied');
         }, 1000);
-    }).catch(err => {
-        // 如果剪贴板API不可用，使用备用方案
-        const textArea = document.createElement('textarea');
-        textArea.value = problemNum;
-        textArea.style.position = 'fixed';
-        textArea.style.left = '-999999px';
-        document.body.appendChild(textArea);
-        textArea.select();
-        try {
-            document.execCommand('copy');
-            const originalText = button.innerHTML;
-            button.innerHTML = '✓';
-            button.classList.add('copied');
-            setTimeout(() => {
-                button.innerHTML = originalText;
-                button.classList.remove('copied');
-            }, 1000);
-        } catch (err) {
-            alert('复制失败，请手动复制');
-        }
-        document.body.removeChild(textArea);
-    });
+    } catch (err) {
+        alert('复制失败，请手动复制');
+    }
+    document.body.removeChild(textArea);
 }
 
 // 切换题目完成状态
@@ -792,38 +792,25 @@ function copyProblemId(problemId, event) {
     event.stopPropagation();
     const button = event.target;
 
-    navigator.clipboard.writeText(problemId).then(() => {
-        // 显示复制成功反馈
+    const textArea = document.createElement('textarea');
+    textArea.value = problemId;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.select();
+    try {
+        document.execCommand('copy');
         const originalText = button.innerHTML;
         button.innerHTML = '✓';
         button.classList.add('copied');
-
         setTimeout(() => {
             button.innerHTML = originalText;
             button.classList.remove('copied');
         }, 1000);
-    }).catch(err => {
-        // 如果剪贴板API不可用，使用备用方案
-        const textArea = document.createElement('textarea');
-        textArea.value = problemId;
-        textArea.style.position = 'fixed';
-        textArea.style.left = '-999999px';
-        document.body.appendChild(textArea);
-        textArea.select();
-        try {
-            document.execCommand('copy');
-            const originalText = button.innerHTML;
-            button.innerHTML = '✓';
-            button.classList.add('copied');
-            setTimeout(() => {
-                button.innerHTML = originalText;
-                button.classList.remove('copied');
-            }, 1000);
-        } catch (err) {
-            alert('复制失败，请手动复制');
-        }
-        document.body.removeChild(textArea);
-    });
+    } catch (err) {
+        alert('复制失败，请手动复制');
+    }
+    document.body.removeChild(textArea);
 }
 
 // --- 搜索功能 ---

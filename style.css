@@ -655,6 +655,39 @@ body {
     color: white;
 }
 
+.link-btn {
+    position: absolute;
+    bottom: -8px;
+    right: -8px;
+    width: 24px;
+    height: 24px;
+    background: white;
+    border: 2px solid #FF9800;
+    border-radius: 50%;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    transition: all 0.2s;
+    padding: 0;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.problem-wrapper:hover .link-btn {
+    display: flex;
+}
+
+.link-btn:hover {
+    background: #FF9800;
+    transform: scale(1.1);
+}
+
+.link-btn:active {
+    transform: scale(0.95);
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
     .header-content {
