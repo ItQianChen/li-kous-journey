@@ -1308,6 +1308,31 @@ body {
     color: white;
 }
 
+.link-problem-btn {
+    background: white;
+    border: 2px solid #FF9800;
+    border-radius: 6px;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    padding: 0;
+    margin-left: 0.5rem;
+}
+
+.link-problem-btn:hover {
+    background: #FF9800;
+    transform: scale(1.1);
+}
+
+.link-problem-btn:active {
+    transform: scale(0.95);
+}
+
 .problem-difficulty.easy {
     background: #C8E6C9;
     color: #2E7D32;

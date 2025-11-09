@@ -706,6 +706,7 @@ function showDateDetail(dateStr, activity) {
                 // 获取题目完整信息
                 const problemInfo = allProblems.find(p => p.id.toString() === problem.id.toString());
                 const problemTitle = problemInfo ? problemInfo.title : '';
+                const problemUrl = problemInfo ? problemInfo.url : '';
 
                 const difficultyClass = problem.difficulty === '简单' ? 'easy' :
                                        problem.difficulty === '中等' ? 'medium' : 'hard';
@@ -715,6 +716,9 @@ function showDateDetail(dateStr, activity) {
                         <span class="problem-title-detail">${problemTitle}</span>
                         <span class="problem-category">${problem.category}</span>
                         <span class="problem-difficulty ${difficultyClass}">${problem.difficulty}</span>
+                        ${problemUrl ? `<button class="link-problem-btn" onclick="window.open('${problemUrl}', '_blank')" title="跳转到题目页面">
+                            🔗
+                        </button>` : ''}
                         <button class="copy-problem-btn" onclick="copyProblemId('${problem.id}', event)" title="复制题号">
                             📋
                         </button>
