@@ -455,6 +455,9 @@
     {"id": 337, "title": "打家劫舍 III", "difficulty": "中等", "passRate": 40, "category": "动态规划", "url": "https://leetcode.cn/problems/house-robber-iii/"},
     {"id": 124, "title": "二叉树中的最大路径和", "difficulty": "困难", "passRate": 35, "category": "动态规划", "url": "https://leetcode.cn/problems/binary-tree-maximum-path-sum/"},
     {"id": 233, "title": "数字 1 的个数", "difficulty": "困难", "passRate": 45, "category": "动态规划", "url": "https://leetcode.cn/problems/number-of-digit-one/"},
-    {"id": 600, "title": "不含连续1的非负整数", "difficulty": "中等", "passRate": 50, "category": "动态规划", "url": "https://leetcode.cn/problems/non-negative-integers-without-consecutive-ones/"}
+    {"id": 600, "title": "不含连续1的非负整数", "difficulty": "中等", "passRate": 50, "category": "动态规划", "url": "https://leetcode.cn/problems/non-negative-integers-without-consecutive-ones/"},
+    {"id": 718, "title": "最长重复子数组", "difficulty": "中等", "passRate": 56, "category": "动态规划", "url": "https://leetcode.cn/problems/maximum-length-of-repeated-subarray/"},
+    {"id": 1143, "title": "最长公共子序列", "difficulty": "中等", "passRate": 67, "category": "动态规划", "url": "https://leetcode.cn/problems/longest-common-subsequence/"},
+    {"id": 300, "title": "最长递增子序列", "difficulty": "中等", "passRate": 58, "category": "动态规划", "url": "https://leetcode.cn/problems/longest-increasing-subsequence/"}
   ]
 }
