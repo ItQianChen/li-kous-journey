@@ -758,7 +758,8 @@ body {
     width: 90%;
     max-width: 600px;
     max-height: 90vh;
-    overflow: auto;
+    display: flex;
+    flex-direction: column;
     box-shadow: 0 10px 40px rgba(0,0,0,0.3);
     animation: slideUp 0.3s ease-out;
 }
@@ -778,8 +779,9 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 2rem;
+    padding: 1.2rem 1.5rem;
     border-bottom: 2px solid #f0f0f0;
+    flex-shrink: 0;
 }
 
 .modal-header h2 {
@@ -810,6 +812,9 @@ body {
 
 .modal-body {
     padding: 2rem;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
 }
 
 .data-info {
@@ -1189,6 +1194,61 @@ body {
 .legend-dot.today {
     background: #FF9800;
     border-color: #FF9800;
+}
+
+/* 日历操作按钮 */
+.calendar-actions {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+}
+
+.btn-month-detail {
+    padding: 0.8rem 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: all 0.3s;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.btn-month-detail:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn-month-detail:active {
+    transform: translateY(0);
+}
+
+/* 月度详情弹窗 */
+.month-detail-modal {
+    max-width: 800px;
+}
+
+.month-detail-content {
+    max-height: 65vh;
+    overflow-y: auto;
+}
+
+.no-data {
+    text-align: center;
+    padding: 3rem;
+    color: #999;
+    font-size: 1.1rem;
+}
+
+.problem-dates {
+    font-size: 0.8rem;
+    color: #888;
+    background: #f0f0f0;
+    padding: 4px 8px;
+    border-radius: 5px;
+    white-space: nowrap;
 }
 
 /* 日期详情弹窗 */

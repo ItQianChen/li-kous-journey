@@ -762,6 +762,149 @@ function nextMonth() {
     renderCalendar();
 }
 
+// 获取当月所有打卡题目
+function getMonthlyActivity() {
+    const year = currentYear;
+    const month = currentMonth;
+
+    // 获取当月第一天和最后一天
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+
+    const monthProblems = [];
+    const problemsMap = new Map(); // 用于去重
+
+    // 遍历当月每一天
+    for (let day = 1; day <= lastDay.getDate(); day++) {
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const activity = getDailyActivity(dateStr);
+
+        if (activity && activity.problems.length > 0) {
+            activity.problems.forEach(problem => {
+                // 使用题目ID作为key去重
+                if (!problemsMap.has(problem.id)) {
+                    problemsMap.set(problem.id, {
+                        id: problem.id,
+                        round: problem.round,
+                        difficulty: problem.difficulty,
+                        category: problem.category,
+                        solvedAt: problem.solvedAt,
+                        dates: [dateStr]
+                    });
+                } else {
+                    // 如果题目已存在，只添加日期（不覆盖其他信息）
+                    const existing = problemsMap.get(problem.id);
+                    if (!existing.dates.includes(dateStr)) {
+                        existing.dates.push(dateStr);
+                    }
+                }
+            });
+        }
+    }
+
+    // 转换为数组并按轮次分组
+    const problemsByRound = {
+        round1: [],
+        round2: [],
+        round3: [],
+        round4: []
+    };
+
+    problemsMap.forEach(problem => {
+        problemsByRound[problem.round].push(problem);
+    });
+
+    // 计算总数
+    const totalCount = problemsMap.size;
+
+    return { problemsByRound, totalCount };
+}
+
+// 显示月度详情
+function showMonthDetail() {
+    const modal = document.getElementById('monthDetailModal');
+    const title = document.getElementById('monthDetailTitle');
+    const content = document.getElementById('monthDetailContent');
+
+    const monthNames = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'];
+    const { problemsByRound, totalCount } = getMonthlyActivity();
+
+    title.textContent = `📊 ${currentYear}年${monthNames[currentMonth]} - 共完成 ${totalCount} 题`;
+
+    if (totalCount === 0) {
+        content.innerHTML = '<div class="no-data">本月暂无打卡记录</div>';
+        modal.classList.add('active');
+        return;
+    }
+
+    // 生成详情内容
+    let html = '';
+    const roundNames = {
+        round1: '第一轮',
+        round2: '第二轮',
+        round3: '第三轮',
+        round4: '第四轮'
+    };
+
+    Object.keys(problemsByRound).forEach(roundKey => {
+        const problems = problemsByRound[roundKey];
+        if (problems.length > 0) {
+            html += `
+                <div class="round-section">
+                    <h3 class="round-title ${roundKey}">${roundNames[roundKey]} (${problems.length}题)</h3>
+                    <div class="problems-list">
+            `;
+
+            // 按题号排序
+            problems.sort((a, b) => parseInt(a.id) - parseInt(b.id));
+
+            problems.forEach(problem => {
+                // 获取题目完整信息
+                const problemInfo = allProblems.find(p => p.id.toString() === problem.id.toString());
+                const problemTitle = problemInfo ? problemInfo.title : '';
+                const problemUrl = problemInfo ? problemInfo.url : '';
+
+                const difficultyClass = problem.difficulty === '简单' ? 'easy' :
+                                       problem.difficulty === '中等' ? 'medium' : 'hard';
+
+                // 格式化打卡日期
+                const datesText = problem.dates.length > 1 ?
+                    `打卡${problem.dates.length}次` :
+                    `${problem.dates[0].split('-')[2]}日`;
+
+                html += `
+                    <div class="problem-detail-item">
+                        <span class="problem-number">${problem.id}</span>
+                        <span class="problem-title-detail">${problemTitle}</span>
+                        <span class="problem-category">${problem.category}</span>
+                        <span class="problem-difficulty ${difficultyClass}">${problem.difficulty}</span>
+                        <span class="problem-dates">${datesText}</span>
+                        ${problemUrl ? `<button class="link-problem-btn" onclick="window.open('${problemUrl}', '_blank')" title="跳转到题目页面">
+                            🔗
+                        </button>` : ''}
+                        <button class="copy-problem-btn" onclick="copyProblemId('${problem.id}', event)" title="复制题号">
+                            📋
+                        </button>
+                    </div>
+                `;
+            });
+
+            html += `
+                    </div>
+                </div>
+            `;
+        }
+    });
+
+    content.innerHTML = html;
+    modal.classList.add('active');
+}
+
+// 关闭月度详情弹窗
+function closeMonthDetail() {
+    document.getElementById('monthDetailModal').classList.remove('active');
+}
+
 // 点击弹窗外部关闭
 document.addEventListener('click', function(e) {
     const dataModal = document.getElementById('dataModal');
@@ -783,6 +926,11 @@ document.addEventListener('click', function(e) {
 
     if (e.target === dateDetailModal) {
         closeDateDetail();
+    }
+
+    const monthDetailModal = document.getElementById('monthDetailModal');
+    if (e.target === monthDetailModal) {
+        closeMonthDetail();
     }
 
     const categoryChoiceModal = document.getElementById('categoryChoiceModal');

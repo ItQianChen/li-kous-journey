@@ -101,6 +101,9 @@
                         <span id="currentMonth" class="current-month"></span>
                         <button onclick="nextMonth()" class="calendar-nav-btn">▶</button>
                     </div>
+                    <div class="calendar-actions">
+                        <button onclick="showMonthDetail()" class="btn-month-detail">📊 查看本月全部题目</button>
+                    </div>
                     <div class="calendar-grid" id="calendarGrid">
                         <!-- 动态生成日历 -->
                     </div>
@@ -140,6 +143,21 @@
                 <div class="modal-body">
                     <div id="dateDetailContent" class="date-detail-content">
                         <!-- 动态生成详情内容 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 月度详情弹窗 -->
+        <div class="modal" id="monthDetailModal">
+            <div class="modal-content month-detail-modal">
+                <div class="modal-header">
+                    <h2 id="monthDetailTitle">📊 本月打卡题目</h2>
+                    <button onclick="closeMonthDetail()" class="modal-close">✕</button>
+                </div>
+                <div class="modal-body">
+                    <div id="monthDetailContent" class="month-detail-content">
+                        <!-- 动态生成月度详情内容 -->
                     </div>
                 </div>
             </div>
