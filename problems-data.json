@@ -458,6 +458,8 @@
     {"id": 600, "title": "不含连续1的非负整数", "difficulty": "中等", "passRate": 50, "category": "动态规划", "url": "https://leetcode.cn/problems/non-negative-integers-without-consecutive-ones/"},
     {"id": 718, "title": "最长重复子数组", "difficulty": "中等", "passRate": 56, "category": "动态规划", "url": "https://leetcode.cn/problems/maximum-length-of-repeated-subarray/"},
     {"id": 1143, "title": "最长公共子序列", "difficulty": "中等", "passRate": 67, "category": "动态规划", "url": "https://leetcode.cn/problems/longest-common-subsequence/"},
-    {"id": 300, "title": "最长递增子序列", "difficulty": "中等", "passRate": 58, "category": "动态规划", "url": "https://leetcode.cn/problems/longest-increasing-subsequence/"}
+    {"id": 300, "title": "最长递增子序列", "difficulty": "中等", "passRate": 58, "category": "动态规划", "url": "https://leetcode.cn/problems/longest-increasing-subsequence/"},
+    {"id": 69, "title": "x 的平方根 ", "difficulty": "简单", "passRate": 39, "category": "分治", "url": "https://leetcode.cn/problems/sqrtx/"},
+    {"id": 395, "title": "至少有 K 个重复字符的最长子串", "difficulty": "中等", "passRate": 53, "category": "分治", "url": "https://leetcode.cn/problems/longest-substring-with-at-least-k-repeating-characters/"}
   ]
 }
