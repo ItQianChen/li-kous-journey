@@ -1,8 +1,8 @@
 {
   "problems": [
-    {"id": 2469, "title": "将身高单位从厘米转换为英寸", "difficulty": "简单", "passRate": 82, "category": "数学", "url": "https://leetcode.cn/problems/convert-the-temperature/"},
+    {"id": 2469, "title": "温度转换", "difficulty": "简单", "passRate": 75, "category": "数学", "url": "https://leetcode.cn/problems/convert-the-temperature/"},
     {"id": 2235, "title": "两整数相加", "difficulty": "简单", "passRate": 74, "category": "数学", "url": "https://leetcode.cn/problems/add-two-integers/"},
-    {"id": 2413, "title": "找出数组中的最小偶数", "difficulty": "简单", "passRate": 78, "category": "数学", "url": "https://leetcode.cn/problems/smallest-even-multiple/"},
+    {"id": 2413, "title": "最小偶倍数", "difficulty": "简单", "passRate": 78, "category": "数学", "url": "https://leetcode.cn/problems/smallest-even-multiple/"},
     {"id": 2160, "title": "拆分数位后四位数字的最小和", "difficulty": "简单", "passRate": 80, "category": "数学", "url": "https://leetcode.cn/problems/minimum-sum-of-four-digit-number-after-splitting-digits/"},
     {"id": 2520, "title": "统计能整除数字的位数", "difficulty": "简单", "passRate": 66, "category": "数学", "url": "https://leetcode.cn/problems/count-the-digits-that-divide-a-number/"},
     {"id": 1688, "title": "比赛中的配对次数", "difficulty": "简单", "passRate": 85, "category": "数学", "url": "https://leetcode.cn/problems/count-of-matches-in-tournament/"},
@@ -460,6 +460,7 @@
     {"id": 1143, "title": "最长公共子序列", "difficulty": "中等", "passRate": 67, "category": "动态规划", "url": "https://leetcode.cn/problems/longest-common-subsequence/"},
     {"id": 300, "title": "最长递增子序列", "difficulty": "中等", "passRate": 58, "category": "动态规划", "url": "https://leetcode.cn/problems/longest-increasing-subsequence/"},
     {"id": 69, "title": "x 的平方根 ", "difficulty": "简单", "passRate": 39, "category": "分治", "url": "https://leetcode.cn/problems/sqrtx/"},
-    {"id": 395, "title": "至少有 K 个重复字符的最长子串", "difficulty": "中等", "passRate": 53, "category": "分治", "url": "https://leetcode.cn/problems/longest-substring-with-at-least-k-repeating-characters/"}
+    {"id": 395, "title": "至少有 K 个重复字符的最长子串", "difficulty": "中等", "passRate": 53, "category": "分治", "url": "https://leetcode.cn/problems/longest-substring-with-at-least-k-repeating-characters/"},
+    {"id": 239, "title": "最大滑动窗口", "difficulty": "困难", "passRate": 49.9, "category": "队列", "url": "https://leetcode.cn/problems/sliding-window-maximum/"}
   ]
 }
