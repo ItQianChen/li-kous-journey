@@ -286,8 +286,16 @@ function renderProblems() {
         item.className = 'problem-item';
 
         const isSolved = userProgress[roundKey] && userProgress[roundKey][problemNum];
+        let solvedDateStr = '';
         if (isSolved) {
             item.classList.add('solved');
+
+            // 添加打卡日期时间标签
+            const solvedInfo = userProgress[roundKey][problemNum];
+            if (solvedInfo.solvedAt) {
+                const solvedDate = new Date(solvedInfo.solvedAt);
+                solvedDateStr = `${solvedDate.getFullYear()}-${String(solvedDate.getMonth() + 1).padStart(2, '0')}-${String(solvedDate.getDate()).padStart(2, '0')} ${String(solvedDate.getHours()).padStart(2, '0')}:${String(solvedDate.getMinutes()).padStart(2, '0')}`;
+            }
         }
 
         // 创建题目内容容器
@@ -303,11 +311,24 @@ function renderProblems() {
         const titleDiv = document.createElement('div');
         titleDiv.className = 'problem-title';
         titleDiv.textContent = problemInfo ? problemInfo.title : '';
-        titleDiv.title = problemInfo ? `${problemNum}. ${problemInfo.title}` : `题目 ${problemNum}`;
 
         contentDiv.appendChild(numberDiv);
         contentDiv.appendChild(titleDiv);
         item.appendChild(contentDiv);
+
+        // 如果已完成，添加打卡日期标签
+        if (isSolved) {
+            const solvedInfo = userProgress[roundKey][problemNum];
+            if (solvedInfo.solvedAt) {
+                const solvedDate = new Date(solvedInfo.solvedAt);
+                const dateStr = `${solvedDate.getMonth() + 1}/${solvedDate.getDate()}`;
+
+                const dateBadge = document.createElement('div');
+                dateBadge.className = 'solved-date-badge';
+                dateBadge.textContent = dateStr;
+                item.appendChild(dateBadge);
+            }
+        }
 
         // 如果题目有 URL，添加跳转按钮
         if (problemInfo && problemInfo.url) {
@@ -322,7 +343,12 @@ function renderProblems() {
             item.appendChild(linkBtn);
         }
 
-        item.title = `点击打卡题目 ${problemNum}`;
+        // 设置整个题目卡片的title提示
+        if (isSolved && solvedDateStr) {
+            item.title = `题目 ${problemNum}: ${problemInfo ? problemInfo.title : ''}\n打卡时间: ${solvedDateStr}\n点击取消打卡`;
+        } else {
+            item.title = `题目 ${problemNum}: ${problemInfo ? problemInfo.title : ''}\n点击打卡`;
+        }
 
         item.onclick = (e) => {
             e.stopPropagation();
@@ -554,9 +580,12 @@ function renderCalendar() {
     const grid = document.getElementById('calendarGrid');
     const monthDisplay = document.getElementById('currentMonth');
 
-    // 更新月份显示
+    // 获取当月完成题目数量
+    const { totalCount } = getMonthlyActivity();
+
+    // 更新月份显示，包含完成题目数量
     const monthNames = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'];
-    monthDisplay.textContent = `${currentYear}年 ${monthNames[currentMonth]}`;
+    monthDisplay.textContent = `${currentYear}年 ${monthNames[currentMonth]} (本月完成 ${totalCount} 题)`;
 
     // 清空日历网格
     grid.innerHTML = '';
@@ -829,7 +858,7 @@ function showMonthDetail() {
     const monthNames = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'];
     const { problemsByRound, totalCount } = getMonthlyActivity();
 
-    title.textContent = `📊 ${currentYear}年${monthNames[currentMonth]} - 共完成 ${totalCount} 题`;
+    title.textContent = `📊 ${currentYear}年${monthNames[currentMonth]} - 共完成 ${totalCount} 题（去重）`;
 
     if (totalCount === 0) {
         content.innerHTML = '<div class="no-data">本月暂无打卡记录</div>';
