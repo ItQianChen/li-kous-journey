@@ -37,7 +37,7 @@
     color: #667eea;
 }
 
-.btn-tips, .btn-data, .btn-logout, .btn-calendar {
+.btn-tips, .btn-data, .btn-logout, .btn-calendar, .btn-chart {
     padding: 8px 20px;
     color: white;
     border: none;
@@ -58,6 +58,9 @@
 
 .btn-calendar { background: linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%); }
 .btn-calendar:hover { background: linear-gradient(135deg, #AB47BC 0%, #8E24AA 100%); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(156, 39, 176, 0.3); }
+
+.btn-chart { background: linear-gradient(135deg, #467bb3 0%, #5e90cc 100%); }
+.btn-chart:hover { background: linear-gradient(135deg, #5e90cc 0%, #6fa0dc 100%); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(94, 138, 204, 0.51); }
 
 
 /* --- Data Notice Banner --- */
@@ -448,3 +451,48 @@
 
 .link-btn { bottom: -8px; right: -8px; background: white; border: 2px solid #FF9800; }
 .link-btn:hover { background: #FF9800; transform: scale(1.1); }
+
+
+/* --- Main Footer --- */
+.main-footer {
+    max-width: 1200px;
+    margin: 3rem auto 2rem;
+    padding: 1.5rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    border-top: 1px solid #e0e0e0;
+}
+
+.footer-github {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1rem;
+    background: #24292e;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.footer-github:hover {
+    background: #444d56;
+    transform: translateY(-1px);
+}
+
+.footer-github svg {
+    opacity: 0.9;
+}
+
+.footer-divider {
+    color: #ccc;
+}
+
+.footer-text {
+    color: #888;
+    font-size: 0.85rem;
+}

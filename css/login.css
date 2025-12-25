@@ -1,5 +1,35 @@
 /* css/login.css */
 
+/* --- GitHub Link on Login Page --- */
+.github-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 2rem;
+    padding: 0.6rem 1.2rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: all 0.3s;
+}
+
+.github-link:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.github-link svg {
+    opacity: 0.8;
+}
+
+.github-link:hover svg {
+    opacity: 1;
+}
+
 .login-container {
     display: flex;
     flex-direction: column;

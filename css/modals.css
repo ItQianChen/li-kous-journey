@@ -198,3 +198,333 @@
 .choice-round.round4 { background: #f44336; }
 
 .choice-category { font-size: 1rem; font-weight: bold; color: #333; }
+
+
+/* --- Chart Modal --- */
+.chart-modal {
+    max-width: 800px;
+}
+
+.chart-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+/* Chart Tabs */
+.chart-tabs {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.chart-tab {
+    padding: 0.6rem 1.2rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 25px;
+    background: white;
+    color: #666;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 0.9rem;
+}
+
+.chart-tab:hover {
+    border-color: #667eea;
+    color: #667eea;
+}
+
+.chart-tab.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-color: transparent;
+}
+
+/* Chart Panels */
+.chart-panel {
+    display: none;
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.chart-panel.active {
+    display: flex;
+}
+
+.chart-container {
+    width: 100%;
+    max-width: 400px;
+    aspect-ratio: 1;
+    position: relative;
+}
+
+.chart-container-wide {
+    max-width: 700px;
+    aspect-ratio: 2 / 1;
+}
+
+.chart-container canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Trend Controls */
+.trend-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    padding-bottom: 1rem;
+}
+
+.trend-presets {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.trend-preset-btn {
+    padding: 0.5rem 1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 20px;
+    background: white;
+    color: #666;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.trend-preset-btn:hover {
+    border-color: #667eea;
+    color: #667eea;
+}
+
+.trend-preset-btn.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-color: transparent;
+}
+
+.trend-custom-range {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.8rem 1.2rem;
+    background: #f8f9fa;
+    border-radius: 10px;
+}
+
+.trend-custom-range input[type="date"] {
+    padding: 0.5rem 0.8rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    color: #333;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.trend-custom-range input[type="date"]:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.trend-custom-range span {
+    color: #888;
+    font-size: 0.9rem;
+}
+
+.trend-summary {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 10px;
+    margin-top: 1rem;
+}
+
+.trend-stat {
+    text-align: center;
+}
+
+.trend-stat-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #667eea;
+}
+
+.trend-stat-label {
+    font-size: 0.8rem;
+    color: #888;
+    margin-top: 0.3rem;
+}
+
+/* Heatmap Styles */
+.heatmap-container {
+    width: 100%;
+    overflow-x: auto;
+    padding: 1rem 0;
+}
+
+.heatmap-wrapper {
+    display: flex;
+    gap: 3px;
+    padding: 10px;
+}
+
+.heatmap-month {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.heatmap-month-label {
+    font-size: 0.7rem;
+    color: #888;
+    text-align: center;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.heatmap-weeks {
+    display: flex;
+    gap: 3px;
+}
+
+.heatmap-week {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.heatmap-day {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    background: #ebedf0;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.heatmap-day:hover {
+    transform: scale(1.3);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.heatmap-day.level-0 { background: #ebedf0; }
+.heatmap-day.level-1 { background: #9be9a8; }
+.heatmap-day.level-2 { background: #40c463; }
+.heatmap-day.level-3 { background: #30a14e; }
+.heatmap-day.level-4 { background: #216e39; }
+
+.heatmap-day.future { background: #f8f9fa; opacity: 0.5; }
+
+.heatmap-legend {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.heatmap-label {
+    font-size: 0.8rem;
+    color: #888;
+}
+
+.heatmap-scale {
+    display: flex;
+    gap: 3px;
+}
+
+.heatmap-level {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+}
+
+.heatmap-level.level-0 { background: #ebedf0; }
+.heatmap-level.level-1 { background: #9be9a8; }
+.heatmap-level.level-2 { background: #40c463; }
+.heatmap-level.level-3 { background: #30a14e; }
+.heatmap-level.level-4 { background: #216e39; }
+
+.heatmap-tooltip {
+    position: fixed;
+    background: #333;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    pointer-events: none;
+    z-index: 1000;
+    white-space: nowrap;
+}
+
+.chart-legend {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    width: 100%;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.8rem 1rem;
+    background: #f8f9fa;
+    border-radius: 10px;
+    transition: all 0.2s;
+}
+
+.legend-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.legend-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.legend-info {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.legend-name {
+    font-weight: bold;
+    color: #333;
+    font-size: 0.9rem;
+}
+
+.legend-progress {
+    font-size: 0.8rem;
+    color: #888;
+}
+
+.legend-percent {
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.legend-item.round1 .legend-percent { color: #4CAF50; }
+.legend-item.round2 .legend-percent { color: #2196F3; }
+.legend-item.round3 .legend-percent { color: #FF9800; }
+.legend-item.round4 .legend-percent { color: #f44336; }
