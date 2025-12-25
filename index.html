@@ -56,11 +56,50 @@
             </div>
         </div>
 
+        <!-- 全局统计面板 -->
+        <div class="global-stats-panel">
+            <div class="global-stat-card streak">
+                <div class="global-stat-icon">🔥</div>
+                <div class="global-stat-info">
+                    <div class="global-stat-number" id="globalStreak">0</div>
+                    <div class="global-stat-label">连续打卡</div>
+                </div>
+            </div>
+            <div class="global-stat-card today">
+                <div class="global-stat-icon">📝</div>
+                <div class="global-stat-info">
+                    <div class="global-stat-number" id="todayCount">0</div>
+                    <div class="global-stat-label">今日答题</div>
+                </div>
+            </div>
+            <div class="global-stat-card progress">
+                <div class="global-stat-icon">📍</div>
+                <div class="global-stat-info">
+                    <div class="global-stat-number" id="currentProgress">-</div>
+                    <div class="global-stat-label">当前进度</div>
+                </div>
+            </div>
+            <div class="global-stat-card total">
+                <div class="global-stat-icon">📊</div>
+                <div class="global-stat-info">
+                    <div class="global-stat-number" id="globalTotalProgress">0/0</div>
+                    <div class="global-stat-label">总进度 <span id="globalTotalPercent" class="percent-badge">0%</span></div>
+                </div>
+            </div>
+            <div class="global-stat-card share" onclick="shareOverallCard()">
+                <div class="global-stat-icon">📤</div>
+                <div class="global-stat-info">
+                    <div class="global-stat-number">分享</div>
+                    <div class="global-stat-label">全部打卡</div>
+                </div>
+            </div>
+        </div>
+
         <!-- 统计面板 -->
         <div class="stats-panel">
             <div class="stat-card">
                 <div class="stat-number" id="currentRound">第一轮</div>
-                <div class="stat-label">当前进度</div>
+                <div class="stat-label">当前轮次</div>
             </div>
             <div class="stat-card">
                 <div class="stat-number" id="totalSolved">0</div>
@@ -109,6 +148,7 @@
                     </div>
                     <div class="calendar-actions">
                         <button onclick="showMonthDetail()" class="btn-month-detail">📊 查看本月全部题目</button>
+                        <button onclick="shareMonthCard()" class="btn-share-month">📤 分享本月</button>
                     </div>
                     <div class="calendar-grid" id="calendarGrid">
                         <!-- 动态生成日历 -->
@@ -147,8 +187,27 @@
                     <button onclick="closeDateDetail()" class="modal-close">✕</button>
                 </div>
                 <div class="modal-body">
+                    <div class="date-detail-actions">
+                        <button onclick="shareDateCardFromModal()" class="btn-share-date">📤 分享今日打卡</button>
+                    </div>
                     <div id="dateDetailContent" class="date-detail-content">
                         <!-- 动态生成详情内容 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 分享卡片弹窗 -->
+        <div class="modal" id="shareCardModal">
+            <div class="modal-content share-card-modal">
+                <div class="modal-header">
+                    <h2>📤 分享卡片</h2>
+                    <button onclick="closeShareCard()" class="modal-close">✕</button>
+                </div>
+                <div class="modal-body share-card-body">
+                    <canvas id="shareCanvas"></canvas>
+                    <div class="share-card-actions">
+                        <button onclick="downloadShareCard()" class="btn-download-card">📥 下载图片</button>
                     </div>
                 </div>
             </div>

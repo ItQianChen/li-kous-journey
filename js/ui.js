@@ -3,8 +3,9 @@
 /**
  * 选择并显示指定轮次的内容。
  * @param {number} round - 要选择的轮次编号 (1-4)。
+ * @param {string} categoryName - 可选，要选择的分类名称。
  */
-function selectRound(round) {
+function selectRound(round, categoryName = null) {
     currentRound = round;
     selectedCategory = null;
 
@@ -14,14 +15,16 @@ function selectRound(round) {
         btn.classList.toggle('active', index + 1 === round);
     });
 
-    renderCategories();
+    renderCategories(categoryName);
     updateStats();
+    updateGlobalStats();
 }
 
 /**
  * 渲染当前轮次下的所有分类卡片。
+ * @param {string} targetCategoryName - 可选，要选择的分类名称。
  */
-function renderCategories() {
+function renderCategories(targetCategoryName = null) {
     const container = document.getElementById('categoriesContainer');
     const roundKey = `round${currentRound}`;
     const roundData = problemsData[roundKey];
@@ -34,8 +37,15 @@ function renderCategories() {
         return;
     }
 
-    // 默认选择第一个分类
-    selectedCategory = roundData.categories[0];
+    // 查找目标分类或默认选择第一个分类
+    let targetIndex = 0;
+    if (targetCategoryName) {
+        const foundIndex = roundData.categories.findIndex(c => c.name === targetCategoryName);
+        if (foundIndex !== -1) {
+            targetIndex = foundIndex;
+        }
+    }
+    selectedCategory = roundData.categories[targetIndex];
 
     roundData.categories.forEach((category, index) => {
         const solved = category.problems.filter(p => userProgress[roundKey] && userProgress[roundKey][p]).length;
@@ -44,7 +54,7 @@ function renderCategories() {
 
         const card = document.createElement('div');
         card.className = 'category-card';
-        if (index === 0) {
+        if (index === targetIndex) {
             card.classList.add('active');
         }
 
@@ -68,7 +78,7 @@ function renderCategories() {
         container.appendChild(card);
     });
 
-    // 渲染第一个分类的题目
+    // 渲染选中分类的题目
     if (selectedCategory) {
         renderProblems();
     }
@@ -205,6 +215,7 @@ function toggleProblem(roundKey, problemNum, element) {
 
     saveUserProgress(); // 依赖 data.js
     updateStats();
+    updateGlobalStats(); // 更新全局统计（连续打卡、今日答题、当前进度）
     renderCategories();
     renderCalendar(); // 依赖 calendar.js
 }
@@ -236,6 +247,161 @@ function updateStats() {
     document.getElementById('totalProblems').textContent = totalProblems;
     document.getElementById('completionRate').textContent = completionRate + '%';
     document.getElementById('currentRound').textContent = roundData.name.split(' ')[0];
+}
+
+/**
+ * 更新全局统计面板（连续打卡、今日答题、当前进度、总进度）
+ */
+function updateGlobalStats() {
+    // 计算连续打卡天数
+    const streak = calculateGlobalStreak();
+    document.getElementById('globalStreak').textContent = streak + '天';
+
+    // 计算今日答题数
+    const todayCount = getTodayProblemCount();
+    document.getElementById('todayCount').textContent = todayCount + '题';
+
+    // 显示当前进度
+    const progress = getCurrentProgressText();
+    document.getElementById('currentProgress').textContent = progress;
+
+    // 显示总进度（已刷题目数/总数及百分比）
+    const overallStats = getOverallStats();
+    const totalProgressEl = document.getElementById('globalTotalProgress');
+    const totalPercentEl = document.getElementById('globalTotalPercent');
+    if (totalProgressEl) {
+        totalProgressEl.textContent = `${overallStats.totalSolved}/${overallStats.totalProblems}`;
+    }
+    if (totalPercentEl) {
+        const percent = overallStats.totalProblems > 0
+            ? Math.round((overallStats.totalSolved / overallStats.totalProblems) * 100)
+            : 0;
+        totalPercentEl.textContent = percent + '%';
+    }
+}
+
+/**
+ * 计算全局连续打卡天数（从今天往前算）
+ */
+function calculateGlobalStreak() {
+    let streak = 0;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    for (let i = 0; i < 365; i++) { // 最多检查一年
+        const checkDate = new Date(today);
+        checkDate.setDate(checkDate.getDate() - i);
+        const dateStr = `${checkDate.getFullYear()}-${String(checkDate.getMonth() + 1).padStart(2, '0')}-${String(checkDate.getDate()).padStart(2, '0')}`;
+
+        const dayCount = getDayProblemCount(dateStr);
+
+        if (dayCount > 0) {
+            streak++;
+        } else if (i > 0) { // 如果不是今天且没有打卡，则中断
+            break;
+        }
+        // 如果今天还没打卡，继续检查昨天
+    }
+
+    return streak;
+}
+
+/**
+ * 获取指定日期的打卡题目数
+ */
+function getDayProblemCount(dateStr) {
+    let count = 0;
+    Object.keys(userProgress).forEach(roundKey => {
+        if (userProgress[roundKey]) {
+            Object.values(userProgress[roundKey]).forEach(progress => {
+                if (progress.solvedAt && new Date(progress.solvedAt).toISOString().split('T')[0] === dateStr) {
+                    count++;
+                }
+            });
+        }
+    });
+    return count;
+}
+
+/**
+ * 获取今日答题数量
+ */
+function getTodayProblemCount() {
+    const today = new Date().toISOString().split('T')[0];
+    return getDayProblemCount(today);
+}
+
+/**
+ * 获取当前进度文本（根据实际打卡情况计算）
+ * 找到第一个未完成的分类作为当前进度
+ */
+function getCurrentProgressText() {
+    const roundNames = ['一', '二', '三', '四'];
+
+    // 遍历所有轮次，找到第一个未完成的分类
+    for (let round = 1; round <= 4; round++) {
+        const roundKey = `round${round}`;
+        const roundData = problemsData[roundKey];
+
+        if (!roundData || !roundData.categories) continue;
+
+        for (const category of roundData.categories) {
+            const solved = category.problems.filter(p =>
+                userProgress[roundKey] && userProgress[roundKey][p]
+            ).length;
+            const total = category.problems.length;
+
+            // 如果这个分类未完成，就是当前进度
+            if (solved < total) {
+                return `第${roundNames[round - 1]}轮·${category.name}`;
+            }
+        }
+    }
+
+    // 如果全部完成
+    return '🎉 全部完成';
+}
+
+/**
+ * 获取当前进度（轮次和分类）
+ * @returns {{round: number, category: string}|null} 返回当前进度的轮次和分类，如果全部完成则返回null
+ */
+function getCurrentProgress() {
+    // 遍历所有轮次，找到第一个未完成的分类
+    for (let round = 1; round <= 4; round++) {
+        const roundKey = `round${round}`;
+        const roundData = problemsData[roundKey];
+
+        if (!roundData || !roundData.categories) continue;
+
+        for (const category of roundData.categories) {
+            const solved = category.problems.filter(p =>
+                userProgress[roundKey] && userProgress[roundKey][p]
+            ).length;
+            const total = category.problems.length;
+
+            // 如果这个分类未完成，就是当前进度
+            if (solved < total) {
+                return { round: round, category: category.name };
+            }
+        }
+    }
+
+    // 如果全部完成，返回null
+    return null;
+}
+
+/**
+ * 跳转到当前进度位置
+ */
+function jumpToCurrentProgress() {
+    const progress = getCurrentProgress();
+    if (progress) {
+        selectRound(progress.round, progress.category);
+    } else {
+        // 全部完成，默认显示第一轮
+        selectRound(1);
+    }
 }
 
 /**

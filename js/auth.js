@@ -60,7 +60,7 @@ function showLoginPage() {
 
 /**
  * 显示主页面，并隐藏登录页面。
- * 同时更新用户显示，检查通知，并渲染当前轮次的题目和日历。
+ * 同时更新用户显示，检查通知，并自动跳转到用户当前进度位置。
  */
 function showMainPage() {
     document.getElementById('loginPage').classList.remove('active');
@@ -68,6 +68,6 @@ function showMainPage() {
     document.getElementById('currentUser').textContent = `👤 ${currentUser}`;
 
     checkNoticeVisibility(); // 依赖 modals.js
-    selectRound(currentRound); // 依赖 ui.js
+    jumpToCurrentProgress(); // 依赖 ui.js - 自动跳转到当前进度
     renderCalendar(); // 依赖 calendar.js
 }
