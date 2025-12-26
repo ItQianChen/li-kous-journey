@@ -216,7 +216,8 @@ function toggleProblem(roundKey, problemNum, element) {
     saveUserProgress(); // 依赖 data.js
     updateStats();
     updateGlobalStats(); // 更新全局统计（连续打卡、今日答题、当前进度）
-    renderCategories();
+    // 修复：传递当前选中的分类名称，避免打卡后跳转到第一个分类
+    renderCategories(selectedCategory ? selectedCategory.name : null);
     renderCalendar(); // 依赖 calendar.js
 }
 
