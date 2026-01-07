@@ -461,6 +461,8 @@
     {"id": 300, "title": "最长递增子序列", "difficulty": "中等", "passRate": 58, "category": "动态规划", "url": "https://leetcode.cn/problems/longest-increasing-subsequence/"},
     {"id": 69, "title": "x 的平方根 ", "difficulty": "简单", "passRate": 39, "category": "分治", "url": "https://leetcode.cn/problems/sqrtx/"},
     {"id": 395, "title": "至少有 K 个重复字符的最长子串", "difficulty": "中等", "passRate": 53, "category": "分治", "url": "https://leetcode.cn/problems/longest-substring-with-at-least-k-repeating-characters/"},
+    {"id": 460, "title": "LFU 缓存-Leetcode 460", "difficulty": "困难", "passRate": 49, "category": "哈希表", "url": "https://leetcode.cn/problems/lfu-cache/"},
+    {"id": 146, "title": "LRU 缓存-Leetcode 146", "difficulty": "中等", "passRate": 55, "category": "哈希表", "url": "https://leetcode.cn/problems/lru-cache/"},
     {"id": 239, "title": "最大滑动窗口", "difficulty": "困难", "passRate": 49.9, "category": "队列", "url": "https://leetcode.cn/problems/sliding-window-maximum/"}
   ]
 }
