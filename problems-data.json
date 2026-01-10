@@ -463,6 +463,10 @@
     {"id": 395, "title": "至少有 K 个重复字符的最长子串", "difficulty": "中等", "passRate": 53, "category": "分治", "url": "https://leetcode.cn/problems/longest-substring-with-at-least-k-repeating-characters/"},
     {"id": 460, "title": "LFU 缓存-Leetcode 460", "difficulty": "困难", "passRate": 49, "category": "哈希表", "url": "https://leetcode.cn/problems/lfu-cache/"},
     {"id": 146, "title": "LRU 缓存-Leetcode 146", "difficulty": "中等", "passRate": 55, "category": "哈希表", "url": "https://leetcode.cn/problems/lru-cache/"},
+    {"id": 1206, "title": "1206. 设计跳表", "difficulty": "困难", "passRate": 69, "category": "设计", "url": "https://leetcode.cn/problems/design-skiplist/"},
+    {"id": 155, "title": "155. 最小栈", "difficulty": "中等", "passRate": 62, "category": "设计", "url": "https://leetcode.cn/problems/min-stack/"},
+    {"id": 355, "title": "355. 设计推特", "difficulty": "中等", "passRate": 41, "category": "设计", "url": "https://leetcode.cn/problems/design-twitter/"},
+    {"id": 714, "title": "714. 买卖股票的最佳时机含手续费", "difficulty": "中等", "passRate": 77, "category": "贪心", "url": "https://leetcode.cn/problems/best-time-to-buy-and-sell-stock-with-transaction-fee/"},
     {"id": 239, "title": "最大滑动窗口", "difficulty": "困难", "passRate": 49.9, "category": "队列", "url": "https://leetcode.cn/problems/sliding-window-maximum/"}
   ]
 }
