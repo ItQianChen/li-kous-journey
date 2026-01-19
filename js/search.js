@@ -85,7 +85,7 @@ function selectProblem(problemId) {
  */
 function findProblemLocations(problemId) {
     const locations = [];
-    ['round1', 'round2', 'round3', 'round4'].forEach((roundKey, roundIndex) => {
+    ['round1', 'round2', 'round3', 'round4', 'round5'].forEach((roundKey, roundIndex) => {
         problemsData[roundKey].categories.forEach(category => {
             if (category.problems.includes(problemId) || category.problems.includes(problemId.toString())) {
                 locations.push({

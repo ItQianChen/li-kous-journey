@@ -236,6 +236,7 @@
 .round-title.round2 { background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%); }
 .round-title.round3 { background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%); }
 .round-title.round4 { background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%); }
+.round-title.round5 { background: linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%); }
 
 .category-section { margin-bottom: 1rem; padding-left: 0.5rem; }
 .category-title {

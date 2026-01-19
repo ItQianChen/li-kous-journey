@@ -2,7 +2,7 @@
 
 /**
  * 选择并显示指定轮次的内容。
- * @param {number} round - 要选择的轮次编号 (1-4)。
+ * @param {number} round - 要选择的轮次编号 (1-5)。
  * @param {string} categoryName - 可选，要选择的分类名称。
  */
 function selectRound(round, categoryName = null) {
@@ -337,10 +337,10 @@ function getTodayProblemCount() {
  * 找到第一个未完成的分类作为当前进度
  */
 function getCurrentProgressText() {
-    const roundNames = ['一', '二', '三', '四'];
+    const roundNames = ['一', '二', '三', '四', '数据库'];
 
     // 遍历所有轮次，找到第一个未完成的分类
-    for (let round = 1; round <= 4; round++) {
+    for (let round = 1; round <= 5; round++) {
         const roundKey = `round${round}`;
         const roundData = problemsData[roundKey];
 
@@ -354,7 +354,8 @@ function getCurrentProgressText() {
 
             // 如果这个分类未完成，就是当前进度
             if (solved < total) {
-                return `第${roundNames[round - 1]}轮·${category.name}`;
+                const roundName = round === 5 ? roundNames[round - 1] : `第${roundNames[round - 1]}轮`;
+                return `${roundName}·${category.name}`;
             }
         }
     }
@@ -369,7 +370,7 @@ function getCurrentProgressText() {
  */
 function getCurrentProgress() {
     // 遍历所有轮次，找到第一个未完成的分类
-    for (let round = 1; round <= 4; round++) {
+    for (let round = 1; round <= 5; round++) {
         const roundKey = `round${round}`;
         const roundData = problemsData[roundKey];
 

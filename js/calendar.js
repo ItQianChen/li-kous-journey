@@ -194,7 +194,7 @@ function getMonthlyActivity() {
         });
     }
 
-    const problemsByRound = { round1: [], round2: [], round3: [], round4: [] };
+    const problemsByRound = { round1: [], round2: [], round3: [], round4: [], round5: [] };
     problemsMap.forEach(problem => {
         problemsByRound[problem.round].push(problem);
     });
@@ -238,7 +238,7 @@ function closeMonthDetail() {
  * @returns {string} - 生成的HTML字符串。
  */
 function generateDetailContentHTML(problems, showDates = false) {
-    const problemsByRound = { round1: [], round2: [], round3: [], round4: [] };
+    const problemsByRound = { round1: [], round2: [], round3: [], round4: [], round5: [] };
     problems.forEach(p => problemsByRound[p.round].push(p));
 
     let html = `
@@ -251,7 +251,7 @@ function generateDetailContentHTML(problems, showDates = false) {
         </div>
     `;
 
-    const roundNames = { round1: '第一轮', round2: '第二轮', round3: '第三轮', round4: '第四轮' };
+    const roundNames = { round1: '第一轮', round2: '第二轮', round3: '第三轮', round4: '第四轮', round5: '数据库轮次' };
 
     Object.keys(problemsByRound).forEach(roundKey => {
         const roundProblems = problemsByRound[roundKey];
@@ -462,7 +462,7 @@ function shareDateCard(dateStr, activity) {
     }
 
     const date = new Date(dateStr);
-    const problemsByRound = { round1: [], round2: [], round3: [], round4: [] };
+    const problemsByRound = { round1: [], round2: [], round3: [], round4: [], round5: [] };
     activity.problems.forEach(p => problemsByRound[p.round].push(p));
 
     const data = {
@@ -493,7 +493,7 @@ function generateShareCard(data) {
 
     // 逻辑尺寸 - 月度卡片需要更高
     const width = 400;
-    const height = data.type === 'month' ? 680 : 560;
+    const height = data.type === 'month' ? 750 : 600;
 
     // 设置物理像素尺寸（高清）
     canvas.width = width * scale;
@@ -610,8 +610,8 @@ function generateShareCard(data) {
     }
 
     // 绘制各轮次统计
-    const roundNames = { round1: '第一轮', round2: '第二轮', round3: '第三轮', round4: '第四轮' };
-    const roundColors = { round1: '#4CAF50', round2: '#2196F3', round3: '#FF9800', round4: '#f44336' };
+    const roundNames = { round1: '第一轮', round2: '第二轮', round3: '第三轮', round4: '第四轮', round5: '数据库' };
+    const roundColors = { round1: '#4CAF50', round2: '#2196F3', round3: '#FF9800', round4: '#f44336', round5: '#9C27B0' };
 
     ctx.textAlign = 'left';
 
@@ -707,7 +707,7 @@ function getOverallStatsForShare() {
     let maxDayDate = null;
 
     // 统计每轮的完成情况
-    const roundStats = { round1: { solved: 0, total: 0 }, round2: { solved: 0, total: 0 }, round3: { solved: 0, total: 0 }, round4: { solved: 0, total: 0 } };
+    const roundStats = { round1: { solved: 0, total: 0 }, round2: { solved: 0, total: 0 }, round3: { solved: 0, total: 0 }, round4: { solved: 0, total: 0 }, round5: { solved: 0, total: 0 } };
 
     // 遍历所有轮次和进度
     Object.keys(problemsData).forEach(roundKey => {
@@ -779,7 +779,7 @@ function getOverallStatsForShare() {
     const completedRounds = [];
     let currentRound = null;
 
-    const roundNames = { round1: '第一轮', round2: '第二轮', round3: '第三轮', round4: '第四轮' };
+    const roundNames = { round1: '第一轮', round2: '第二轮', round3: '第三轮', round4: '第四轮', round5: '数据库' };
 
     Object.keys(roundStats).forEach(roundKey => {
         const stats = roundStats[roundKey];
@@ -794,7 +794,7 @@ function getOverallStatsForShare() {
 
     // 如果没有正在练习的轮次，找第一个未完成的
     if (!currentRound) {
-        for (const roundKey of ['round1', 'round2', 'round3', 'round4']) {
+        for (const roundKey of ['round1', 'round2', 'round3', 'round4', 'round5']) {
             const stats = roundStats[roundKey];
             if (stats.total > 0 && stats.solved < stats.total) {
                 currentRound = roundNames[roundKey];
@@ -851,7 +851,7 @@ function generateOverallShareCard(data) {
 
     // 逻辑尺寸
     const width = 400;
-    const height = 720;
+    const height = 800;
 
     // 设置物理像素尺寸
     canvas.width = width * scale;
@@ -974,8 +974,8 @@ function generateOverallShareCard(data) {
     yPos += 30;
 
     // 各轮次进度
-    const roundColors = { round1: '#4CAF50', round2: '#2196F3', round3: '#FF9800', round4: '#f44336' };
-    const roundNames = { round1: '第一轮', round2: '第二轮', round3: '第三轮', round4: '第四轮' };
+    const roundColors = { round1: '#4CAF50', round2: '#2196F3', round3: '#FF9800', round4: '#f44336', round5: '#9C27B0' };
+    const roundNames = { round1: '第一轮', round2: '第二轮', round3: '第三轮', round4: '第四轮', round5: '数据库' };
 
     ctx.textAlign = 'left';
 

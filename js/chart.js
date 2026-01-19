@@ -92,11 +92,11 @@ function renderCurrentChart() {
  */
 function getRoundProgressData() {
     const roundData = [];
-    const roundNames = ['第一轮', '第二轮', '第三轮', '第四轮'];
-    const roundColors = ['#4CAF50', '#2196F3', '#FF9800', '#f44336'];
-    const roundBgColors = ['rgba(76, 175, 80, 0.2)', 'rgba(33, 150, 243, 0.2)', 'rgba(255, 152, 0, 0.2)', 'rgba(244, 67, 54, 0.2)'];
+    const roundNames = ['第一轮', '第二轮', '第三轮', '第四轮', '数据库'];
+    const roundColors = ['#4CAF50', '#2196F3', '#FF9800', '#f44336', '#9C27B0'];
+    const roundBgColors = ['rgba(76, 175, 80, 0.2)', 'rgba(33, 150, 243, 0.2)', 'rgba(255, 152, 0, 0.2)', 'rgba(244, 67, 54, 0.2)', 'rgba(156, 39, 176, 0.2)'];
 
-    for (let i = 1; i <= 4; i++) {
+    for (let i = 1; i <= 5; i++) {
         const roundKey = `round${i}`;
         const round = problemsData[roundKey];
 
@@ -144,7 +144,7 @@ function renderProgressChart() {
         data: [round.percent, 100 - round.percent],
         backgroundColor: [round.color, round.bgColor],
         borderWidth: 0,
-        cutout: `${60 + index * 8}%`,
+        cutout: `${50 + index * 8}%`,
         circumference: 360,
         rotation: -90
     }));

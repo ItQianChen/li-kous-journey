@@ -27,7 +27,8 @@ function organizeProblemsByRounds() {
         round1: { name: "第一轮 (简单 50%+)", description: "难度简单，通过率在50%以上的题目", categories: {} },
         round2: { name: "第二轮 (中等 50%+)", description: "难度中等，通过率在50%以上的题目", categories: {} },
         round3: { name: "第三轮 (算法理论)", description: "学习算法理论后，刷树、图、贪心、动态规划", categories: {} },
-        round4: { name: "第四轮 (困难)", description: "困难题目和通过率低于50%的题目", categories: {} }
+        round4: { name: "第四轮 (困难)", description: "困难题目和通过率低于50%的题目", categories: {} },
+        round5: { name: "数据库轮次 (SQL)", description: "专门针对 SQL 数据库题目的练习轮次", categories: {} }
     };
 
     const round3Categories = ['树', '图与回溯算法', '贪心', '动态规划'];
@@ -35,7 +36,12 @@ function organizeProblemsByRounds() {
     allProblems.forEach(problem => {
         const { difficulty, passRate, category } = problem;
 
-        if (round3Categories.includes(category)) {
+        if (category === 'SQL') {
+            if (!problemsData.round5.categories[category]) {
+                problemsData.round5.categories[category] = [];
+            }
+            problemsData.round5.categories[category].push(problem.id);
+        } else if (round3Categories.includes(category)) {
             if (!problemsData.round3.categories[category]) {
                 problemsData.round3.categories[category] = [];
             }
@@ -60,7 +66,7 @@ function organizeProblemsByRounds() {
     });
 
     // 转换categories对象为数组格式
-    ['round1', 'round2', 'round3', 'round4'].forEach(roundKey => {
+    ['round1', 'round2', 'round3', 'round4', 'round5'].forEach(roundKey => {
         const categoriesObj = problemsData[roundKey].categories;
         problemsData[roundKey].categories = Object.keys(categoriesObj).map(name => ({
             name: name,
@@ -78,7 +84,7 @@ function loadUserProgress() {
     if (saved) {
         userProgress = JSON.parse(saved);
     } else {
-        userProgress = { round1: {}, round2: {}, round3: {}, round4: {} };
+        userProgress = { round1: {}, round2: {}, round3: {}, round4: {}, round5: {} };
     }
 }
 
