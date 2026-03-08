@@ -82,17 +82,15 @@ function renderCalendar() {
  * @returns {{count: number, problems: Array}} - 包含题目数量和题目详情数组的对象。
  */
 function getDailyActivity(dateStr) {
-    let totalSolved = 0;
-    const problems = [];
+    const problemsMap = new Map();
 
     Object.keys(userProgress).forEach(roundKey => {
         if (userProgress[roundKey]) {
             Object.entries(userProgress[roundKey]).forEach(([problemId, progress]) => {
                 if (progress.solvedAt && new Date(progress.solvedAt).toISOString().split('T')[0] === dateStr) {
-                    totalSolved++;
                     const problemInfo = allProblems.find(p => p.id.toString() === problemId);
-                    if (problemInfo) {
-                        problems.push({
+                    if (problemInfo && !problemsMap.has(problemId)) {
+                        problemsMap.set(problemId, {
                             id: problemId,
                             round: roundKey,
                             difficulty: problemInfo.difficulty,
@@ -105,7 +103,7 @@ function getDailyActivity(dateStr) {
         }
     });
 
-    return { count: totalSolved, problems: problems };
+    return { count: problemsMap.size, problems: Array.from(problemsMap.values()) };
 }
 
 /**
@@ -194,8 +192,14 @@ function getMonthlyActivity() {
         });
     }
 
-    const problemsByRound = { round1: [], round2: [], round3: [], round4: [], round5: [] };
+    const problemsByRound = getOrderedRoundKeys().reduce((result, roundKey) => {
+        result[roundKey] = [];
+        return result;
+    }, {});
     problemsMap.forEach(problem => {
+        if (!problemsByRound[problem.round]) {
+            problemsByRound[problem.round] = [];
+        }
         problemsByRound[problem.round].push(problem);
     });
 
@@ -238,8 +242,16 @@ function closeMonthDetail() {
  * @returns {string} - 生成的HTML字符串。
  */
 function generateDetailContentHTML(problems, showDates = false) {
-    const problemsByRound = { round1: [], round2: [], round3: [], round4: [], round5: [] };
-    problems.forEach(p => problemsByRound[p.round].push(p));
+    const problemsByRound = getOrderedRoundKeys().reduce((result, roundKey) => {
+        result[roundKey] = [];
+        return result;
+    }, {});
+    problems.forEach(p => {
+        if (!problemsByRound[p.round]) {
+            problemsByRound[p.round] = [];
+        }
+        problemsByRound[p.round].push(p);
+    });
 
     let html = `
         <div class="detail-search-container">
@@ -251,7 +263,7 @@ function generateDetailContentHTML(problems, showDates = false) {
         </div>
     `;
 
-    const roundNames = { round1: '第一轮', round2: '第二轮', round3: '第三轮', round4: '第四轮', round5: '数据库轮次' };
+    const roundNames = { round1: '第一轮', round2: '第二轮', round3: '第三轮', round4: '第四轮', round5: '数据库轮次', round6: 'Hot100', round7: '面试经典150' };
 
     Object.keys(problemsByRound).forEach(roundKey => {
         const roundProblems = problemsByRound[roundKey];
@@ -462,8 +474,16 @@ function shareDateCard(dateStr, activity) {
     }
 
     const date = new Date(dateStr);
-    const problemsByRound = { round1: [], round2: [], round3: [], round4: [], round5: [] };
-    activity.problems.forEach(p => problemsByRound[p.round].push(p));
+    const problemsByRound = getOrderedRoundKeys().reduce((result, roundKey) => {
+        result[roundKey] = [];
+        return result;
+    }, {});
+    activity.problems.forEach(p => {
+        if (!problemsByRound[p.round]) {
+            problemsByRound[p.round] = [];
+        }
+        problemsByRound[p.round].push(p);
+    });
 
     const data = {
         type: 'day',
@@ -610,8 +630,8 @@ function generateShareCard(data) {
     }
 
     // 绘制各轮次统计
-    const roundNames = { round1: '第一轮', round2: '第二轮', round3: '第三轮', round4: '第四轮', round5: '数据库' };
-    const roundColors = { round1: '#4CAF50', round2: '#2196F3', round3: '#FF9800', round4: '#f44336', round5: '#9C27B0' };
+    const roundNames = { round1: '第一轮', round2: '第二轮', round3: '第三轮', round4: '第四轮', round5: '数据库', round6: 'Hot100', round7: '面试经典150' };
+    const roundColors = { round1: '#4CAF50', round2: '#2196F3', round3: '#FF9800', round4: '#f44336', round5: '#9C27B0', round6: '#00BCD4', round7: '#8BC34A' };
 
     ctx.textAlign = 'left';
 
@@ -707,7 +727,10 @@ function getOverallStatsForShare() {
     let maxDayDate = null;
 
     // 统计每轮的完成情况
-    const roundStats = { round1: { solved: 0, total: 0 }, round2: { solved: 0, total: 0 }, round3: { solved: 0, total: 0 }, round4: { solved: 0, total: 0 }, round5: { solved: 0, total: 0 } };
+    const roundStats = getOrderedRoundKeys().reduce((result, roundKey) => {
+        result[roundKey] = { solved: 0, total: 0 };
+        return result;
+    }, {});
 
     // 遍历所有轮次和进度
     Object.keys(problemsData).forEach(roundKey => {
@@ -717,12 +740,12 @@ function getOverallStatsForShare() {
         roundData.categories.forEach(category => {
             roundStats[roundKey].total += category.problems.length;
             category.problems.forEach(problemNum => {
-                if (userProgress[roundKey] && userProgress[roundKey][problemNum]) {
+                if (isProblemSolved(problemNum)) {
                     roundStats[roundKey].solved++;
                     totalSolved++;
 
-                    const progress = userProgress[roundKey][problemNum];
-                    if (progress.solvedAt) {
+                    const progress = getProblemProgress(problemNum);
+                    if (progress && progress.solvedAt) {
                         const dateStr = new Date(progress.solvedAt).toISOString().split('T')[0];
                         allDates.add(dateStr);
                     }
@@ -779,7 +802,7 @@ function getOverallStatsForShare() {
     const completedRounds = [];
     let currentRound = null;
 
-    const roundNames = { round1: '第一轮', round2: '第二轮', round3: '第三轮', round4: '第四轮', round5: '数据库' };
+    const roundNames = { round1: '第一轮', round2: '第二轮', round3: '第三轮', round4: '第四轮', round5: '数据库', round6: 'Hot100', round7: '面试经典150' };
 
     Object.keys(roundStats).forEach(roundKey => {
         const stats = roundStats[roundKey];
@@ -794,7 +817,7 @@ function getOverallStatsForShare() {
 
     // 如果没有正在练习的轮次，找第一个未完成的
     if (!currentRound) {
-        for (const roundKey of ['round1', 'round2', 'round3', 'round4', 'round5']) {
+        for (const roundKey of getOrderedRoundKeys()) {
             const stats = roundStats[roundKey];
             if (stats.total > 0 && stats.solved < stats.total) {
                 currentRound = roundNames[roundKey];
@@ -974,8 +997,8 @@ function generateOverallShareCard(data) {
     yPos += 30;
 
     // 各轮次进度
-    const roundColors = { round1: '#4CAF50', round2: '#2196F3', round3: '#FF9800', round4: '#f44336', round5: '#9C27B0' };
-    const roundNames = { round1: '第一轮', round2: '第二轮', round3: '第三轮', round4: '第四轮', round5: '数据库' };
+    const roundColors = { round1: '#4CAF50', round2: '#2196F3', round3: '#FF9800', round4: '#f44336', round5: '#9C27B0', round6: '#00BCD4', round7: '#8BC34A' };
+    const roundNames = { round1: '第一轮', round2: '第二轮', round3: '第三轮', round4: '第四轮', round5: '数据库', round6: 'Hot100', round7: '面试经典150' };
 
     ctx.textAlign = 'left';
 

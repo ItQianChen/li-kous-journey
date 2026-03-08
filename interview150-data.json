@@ -1,0 +1,1204 @@
+{
+    "problems": [
+        {
+            "id": 88,
+            "title": "合并两个有序数组",
+            "difficulty": "简单",
+            "passRate": 70,
+            "category": "数组 / 字符串",
+            "url": "https://leetcode.cn/problems/merge-sorted-array/"
+        },
+        {
+            "id": 27,
+            "title": "移除元素",
+            "difficulty": "简单",
+            "passRate": 80,
+            "category": "数组 / 字符串",
+            "url": "https://leetcode.cn/problems/remove-element/"
+        },
+        {
+            "id": 26,
+            "title": "删除有序数组中的重复项",
+            "difficulty": "简单",
+            "passRate": 45,
+            "category": "数组 / 字符串",
+            "url": "https://leetcode.cn/problems/remove-duplicates-from-sorted-array/"
+        },
+        {
+            "id": 80,
+            "title": "删除有序数组中的重复项 II",
+            "difficulty": "中等",
+            "passRate": 50,
+            "category": "数组 / 字符串",
+            "url": "https://leetcode.cn/problems/remove-duplicates-from-sorted-array-ii/"
+        },
+        {
+            "id": 169,
+            "title": "多数元素",
+            "difficulty": "中等",
+            "passRate": 60,
+            "category": "数组 / 字符串",
+            "url": "https://leetcode.cn/problems/majority-element/"
+        },
+        {
+            "id": 189,
+            "title": "轮转数组",
+            "difficulty": "简单",
+            "passRate": 65,
+            "category": "数组 / 字符串",
+            "url": "https://leetcode.cn/problems/rotate-array/"
+        },
+        {
+            "id": 121,
+            "title": "买卖股票的最佳时机",
+            "difficulty": "简单",
+            "passRate": 55,
+            "category": "数组 / 字符串",
+            "url": "https://leetcode.cn/problems/best-time-to-buy-and-sell-stock/"
+        },
+        {
+            "id": 122,
+            "title": "买卖股票的最佳时机 II",
+            "difficulty": "简单",
+            "passRate": 50,
+            "category": "数组 / 字符串",
+            "url": "https://leetcode.cn/problems/best-time-to-buy-and-sell-stock-ii/"
+        },
+        {
+            "id": 55,
+            "title": "跳跃游戏",
+            "difficulty": "中等",
+            "passRate": 50,
+            "category": "数组 / 字符串",
+            "url": "https://leetcode.cn/problems/jump-game/"
+        },
+        {
+            "id": 45,
+            "title": "跳跃游戏 II",
+            "difficulty": "中等",
+            "passRate": 55,
+            "category": "数组 / 字符串",
+            "url": "https://leetcode.cn/problems/jump-game-ii/"
+        },
+        {
+            "id": 274,
+            "title": "H 指数",
+            "difficulty": "中等",
+            "passRate": 40,
+            "category": "数组 / 字符串",
+            "url": "https://leetcode.cn/problems/h-index/"
+        },
+        {
+            "id": 380,
+            "title": "O(1) 时间插入、删除和获取随机元素",
+            "difficulty": "中等",
+            "passRate": 0,
+            "category": "数组 / 字符串",
+            "url": "https://leetcode.cn/problems/insert-delete-getrandom-o1/"
+        },
+        {
+            "id": 238,
+            "title": "除自身以外数组的乘积",
+            "difficulty": "中等",
+            "passRate": 61,
+            "category": "数组 / 字符串",
+            "url": "https://leetcode.cn/problems/product-of-array-except-self/"
+        },
+        {
+            "id": 134,
+            "title": "加油站",
+            "difficulty": "中等",
+            "passRate": 55,
+            "category": "数组 / 字符串",
+            "url": "https://leetcode.cn/problems/gas-station/"
+        },
+        {
+            "id": 135,
+            "title": "分发糖果",
+            "difficulty": "困难",
+            "passRate": 37,
+            "category": "数组 / 字符串",
+            "url": "https://leetcode.cn/problems/candy/"
+        },
+        {
+            "id": 42,
+            "title": "接雨水",
+            "difficulty": "困难",
+            "passRate": 50,
+            "category": "数组 / 字符串",
+            "url": "https://leetcode.cn/problems/trapping-rain-water/"
+        },
+        {
+            "id": 13,
+            "title": "罗马数字转整数",
+            "difficulty": "简单",
+            "passRate": 47,
+            "category": "数组 / 字符串",
+            "url": "https://leetcode.cn/problems/roman-to-integer/"
+        },
+        {
+            "id": 12,
+            "title": "整数转罗马数字",
+            "difficulty": "中等",
+            "passRate": 40,
+            "category": "数组 / 字符串",
+            "url": "https://leetcode.cn/problems/integer-to-roman/"
+        },
+        {
+            "id": 58,
+            "title": "最后一个单词的长度",
+            "difficulty": "简单",
+            "passRate": 80,
+            "category": "数组 / 字符串",
+            "url": "https://leetcode.cn/problems/length-of-last-word/"
+        },
+        {
+            "id": 14,
+            "title": "最长公共前缀",
+            "difficulty": "简单",
+            "passRate": 40,
+            "category": "数组 / 字符串",
+            "url": "https://leetcode.cn/problems/longest-common-prefix/"
+        },
+        {
+            "id": 151,
+            "title": "反转字符串中的单词",
+            "difficulty": "中等",
+            "passRate": 40,
+            "category": "数组 / 字符串",
+            "url": "https://leetcode.cn/problems/reverse-words-in-a-string/"
+        },
+        {
+            "id": 6,
+            "title": "Z 字形变换",
+            "difficulty": "中等",
+            "passRate": 40,
+            "category": "数组 / 字符串",
+            "url": "https://leetcode.cn/problems/zigzag-conversion/"
+        },
+        {
+            "id": 28,
+            "title": "找出字符串中第一个匹配项的下标",
+            "difficulty": "简单",
+            "passRate": 85,
+            "category": "数组 / 字符串",
+            "url": "https://leetcode.cn/problems/find-the-index-of-the-first-occurrence-in-a-string/"
+        },
+        {
+            "id": 68,
+            "title": "文本左右对齐",
+            "difficulty": "困难",
+            "passRate": 39,
+            "category": "数组 / 字符串",
+            "url": "https://leetcode.cn/problems/text-justification/"
+        },
+        {
+            "id": 125,
+            "title": "验证回文串",
+            "difficulty": "简单",
+            "passRate": 41,
+            "category": "双指针",
+            "url": "https://leetcode.cn/problems/valid-palindrome/"
+        },
+        {
+            "id": 392,
+            "title": "判断子序列",
+            "difficulty": "简单",
+            "passRate": 55,
+            "category": "双指针",
+            "url": "https://leetcode.cn/problems/is-subsequence/"
+        },
+        {
+            "id": 167,
+            "title": "两数之和 II - 输入有序数组",
+            "difficulty": "简单",
+            "passRate": 60,
+            "category": "双指针",
+            "url": "https://leetcode.cn/problems/two-sum-ii-input-array-is-sorted/"
+        },
+        {
+            "id": 11,
+            "title": "盛最多水的容器",
+            "difficulty": "中等",
+            "passRate": 40,
+            "category": "双指针",
+            "url": "https://leetcode.cn/problems/container-with-most-water/"
+        },
+        {
+            "id": 15,
+            "title": "三数之和",
+            "difficulty": "中等",
+            "passRate": 35,
+            "category": "双指针",
+            "url": "https://leetcode.cn/problems/3sum/"
+        },
+        {
+            "id": 209,
+            "title": "长度最小的子数组",
+            "difficulty": "中等",
+            "passRate": 40,
+            "category": "滑动窗口",
+            "url": "https://leetcode.cn/problems/minimum-size-subarray-sum/"
+        },
+        {
+            "id": 3,
+            "title": "无重复字符的最长子串",
+            "difficulty": "中等",
+            "passRate": 37,
+            "category": "滑动窗口",
+            "url": "https://leetcode.cn/problems/longest-substring-without-repeating-characters/"
+        },
+        {
+            "id": 30,
+            "title": "串联所有单词的子串",
+            "difficulty": "困难",
+            "passRate": 35,
+            "category": "滑动窗口",
+            "url": "https://leetcode.cn/problems/substring-with-concatenation-of-all-words/"
+        },
+        {
+            "id": 76,
+            "title": "最小覆盖子串",
+            "difficulty": "困难",
+            "passRate": 35,
+            "category": "滑动窗口",
+            "url": "https://leetcode.cn/problems/minimum-window-substring/"
+        },
+        {
+            "id": 36,
+            "title": "有效的数独",
+            "difficulty": "中等",
+            "passRate": 50,
+            "category": "矩阵",
+            "url": "https://leetcode.cn/problems/valid-sudoku/"
+        },
+        {
+            "id": 54,
+            "title": "螺旋矩阵",
+            "difficulty": "中等",
+            "passRate": 40,
+            "category": "矩阵",
+            "url": "https://leetcode.cn/problems/spiral-matrix/"
+        },
+        {
+            "id": 48,
+            "title": "旋转图像",
+            "difficulty": "中等",
+            "passRate": 70,
+            "category": "矩阵",
+            "url": "https://leetcode.cn/problems/rotate-image/"
+        },
+        {
+            "id": 73,
+            "title": "矩阵置零",
+            "difficulty": "中等",
+            "passRate": 60,
+            "category": "矩阵",
+            "url": "https://leetcode.cn/problems/set-matrix-zeroes/"
+        },
+        {
+            "id": 289,
+            "title": "生命游戏",
+            "difficulty": "中等",
+            "passRate": 45,
+            "category": "矩阵",
+            "url": "https://leetcode.cn/problems/game-of-life/"
+        },
+        {
+            "id": 383,
+            "title": "赎金信",
+            "difficulty": "简单",
+            "passRate": 57,
+            "category": "哈希表",
+            "url": "https://leetcode.cn/problems/ransom-note/"
+        },
+        {
+            "id": 205,
+            "title": "同构字符串",
+            "difficulty": "简单",
+            "passRate": 53,
+            "category": "哈希表",
+            "url": "https://leetcode.cn/problems/isomorphic-strings/"
+        },
+        {
+            "id": 290,
+            "title": "单词规律",
+            "difficulty": "简单",
+            "passRate": 60,
+            "category": "哈希表",
+            "url": "https://leetcode.cn/problems/word-pattern/"
+        },
+        {
+            "id": 242,
+            "title": "有效的字母异位词",
+            "difficulty": "简单",
+            "passRate": 66,
+            "category": "哈希表",
+            "url": "https://leetcode.cn/problems/valid-anagram/"
+        },
+        {
+            "id": 49,
+            "title": "字母异位词分组",
+            "difficulty": "中等",
+            "passRate": 55,
+            "category": "哈希表",
+            "url": "https://leetcode.cn/problems/group-anagrams/"
+        },
+        {
+            "id": 1,
+            "title": "两数之和",
+            "difficulty": "简单",
+            "passRate": 50,
+            "category": "哈希表",
+            "url": "https://leetcode.cn/problems/two-sum/"
+        },
+        {
+            "id": 202,
+            "title": "快乐数",
+            "difficulty": "简单",
+            "passRate": 41,
+            "category": "哈希表",
+            "url": "https://leetcode.cn/problems/happy-number/"
+        },
+        {
+            "id": 219,
+            "title": "存在重复元素 II",
+            "difficulty": "简单",
+            "passRate": 41,
+            "category": "哈希表",
+            "url": "https://leetcode.cn/problems/contains-duplicate-ii/"
+        },
+        {
+            "id": 128,
+            "title": "最长连续序列",
+            "difficulty": "中等",
+            "passRate": 60,
+            "category": "哈希表",
+            "url": "https://leetcode.cn/problems/longest-consecutive-sequence/"
+        },
+        {
+            "id": 228,
+            "title": "汇总区间",
+            "difficulty": "中等",
+            "passRate": 55,
+            "category": "区间",
+            "url": "https://leetcode.cn/problems/summary-ranges/"
+        },
+        {
+            "id": 56,
+            "title": "合并区间",
+            "difficulty": "中等",
+            "passRate": 45,
+            "category": "区间",
+            "url": "https://leetcode.cn/problems/merge-intervals/"
+        },
+        {
+            "id": 57,
+            "title": "插入区间",
+            "difficulty": "中等",
+            "passRate": 40,
+            "category": "区间",
+            "url": "https://leetcode.cn/problems/insert-interval/"
+        },
+        {
+            "id": 452,
+            "title": "用最少数量的箭引爆气球",
+            "difficulty": "中等",
+            "passRate": 50,
+            "category": "区间",
+            "url": "https://leetcode.cn/problems/minimum-number-of-arrows-to-burst-balloons/"
+        },
+        {
+            "id": 20,
+            "title": "有效的括号",
+            "difficulty": "简单",
+            "passRate": 45,
+            "category": "栈",
+            "url": "https://leetcode.cn/problems/valid-parentheses/"
+        },
+        {
+            "id": 71,
+            "title": "简化路径",
+            "difficulty": "简单",
+            "passRate": 40,
+            "category": "栈",
+            "url": "https://leetcode.cn/problems/simplify-path/"
+        },
+        {
+            "id": 155,
+            "title": "155. 最小栈",
+            "difficulty": "中等",
+            "passRate": 62,
+            "category": "栈",
+            "url": "https://leetcode.cn/problems/min-stack/"
+        },
+        {
+            "id": 150,
+            "title": "逆波兰表达式求值",
+            "difficulty": "中等",
+            "passRate": 50,
+            "category": "栈",
+            "url": "https://leetcode.cn/problems/evaluate-reverse-polish-notation/"
+        },
+        {
+            "id": 224,
+            "title": "基本计算器",
+            "difficulty": "中等",
+            "passRate": 35,
+            "category": "栈",
+            "url": "https://leetcode.cn/problems/basic-calculator/"
+        },
+        {
+            "id": 141,
+            "title": "环形链表",
+            "difficulty": "简单",
+            "passRate": 60,
+            "category": "链表",
+            "url": "https://leetcode.cn/problems/linked-list-cycle/"
+        },
+        {
+            "id": 2,
+            "title": "两数相加",
+            "difficulty": "中等",
+            "passRate": 42,
+            "category": "链表",
+            "url": "https://leetcode.cn/problems/add-two-numbers/"
+        },
+        {
+            "id": 21,
+            "title": "合并两个有序链表",
+            "difficulty": "简单",
+            "passRate": 60,
+            "category": "链表",
+            "url": "https://leetcode.cn/problems/merge-two-sorted-lists/"
+        },
+        {
+            "id": 138,
+            "title": "随机链表的复制",
+            "difficulty": "中等",
+            "passRate": 40,
+            "category": "链表",
+            "url": "https://leetcode.cn/problems/copy-list-with-random-pointer/"
+        },
+        {
+            "id": 92,
+            "title": "反转链表 II",
+            "difficulty": "中等",
+            "passRate": 45,
+            "category": "链表",
+            "url": "https://leetcode.cn/problems/reverse-linked-list-ii/"
+        },
+        {
+            "id": 25,
+            "title": "K 个一组翻转链表",
+            "difficulty": "困难",
+            "passRate": 35,
+            "category": "链表",
+            "url": "https://leetcode.cn/problems/reverse-nodes-in-k-group/"
+        },
+        {
+            "id": 19,
+            "title": "删除链表的倒数第 N 个结点",
+            "difficulty": "中等",
+            "passRate": 45,
+            "category": "链表",
+            "url": "https://leetcode.cn/problems/remove-nth-node-from-end-of-list/"
+        },
+        {
+            "id": 82,
+            "title": "删除排序链表中的重复元素 II",
+            "difficulty": "中等",
+            "passRate": 40,
+            "category": "链表",
+            "url": "https://leetcode.cn/problems/remove-duplicates-from-sorted-list-ii/"
+        },
+        {
+            "id": 61,
+            "title": "旋转链表",
+            "difficulty": "中等",
+            "passRate": 38,
+            "category": "链表",
+            "url": "https://leetcode.cn/problems/rotate-list/"
+        },
+        {
+            "id": 86,
+            "title": "分隔链表",
+            "difficulty": "中等",
+            "passRate": 48,
+            "category": "链表",
+            "url": "https://leetcode.cn/problems/partition-list/"
+        },
+        {
+            "id": 146,
+            "title": "LRU 缓存-Leetcode 146",
+            "difficulty": "中等",
+            "passRate": 55,
+            "category": "链表",
+            "url": "https://leetcode.cn/problems/lru-cache/"
+        },
+        {
+            "id": 104,
+            "title": "二叉树的最大深度",
+            "difficulty": "简单",
+            "passRate": 68,
+            "category": "二叉树",
+            "url": "https://leetcode.cn/problems/maximum-depth-of-binary-tree/"
+        },
+        {
+            "id": 100,
+            "title": "相同的树",
+            "difficulty": "简单",
+            "passRate": 65,
+            "category": "二叉树",
+            "url": "https://leetcode.cn/problems/same-tree/"
+        },
+        {
+            "id": 226,
+            "title": "翻转二叉树",
+            "difficulty": "简单",
+            "passRate": 70,
+            "category": "二叉树",
+            "url": "https://leetcode.cn/problems/invert-binary-tree/"
+        },
+        {
+            "id": 101,
+            "title": "对称二叉树",
+            "difficulty": "简单",
+            "passRate": 62,
+            "category": "二叉树",
+            "url": "https://leetcode.cn/problems/symmetric-tree/"
+        },
+        {
+            "id": 105,
+            "title": "从前序与中序遍历序列构造二叉树",
+            "difficulty": "中等",
+            "passRate": 55,
+            "category": "二叉树",
+            "url": "https://leetcode.cn/problems/construct-binary-tree-from-preorder-and-inorder-traversal/"
+        },
+        {
+            "id": 106,
+            "title": "从中序与后序遍历序列构造二叉树",
+            "difficulty": "中等",
+            "passRate": 50,
+            "category": "二叉树",
+            "url": "https://leetcode.cn/problems/construct-binary-tree-from-inorder-and-postorder-traversal/"
+        },
+        {
+            "id": 117,
+            "title": "填充每个节点的下一个右侧节点指针 II",
+            "difficulty": "中等",
+            "passRate": 40,
+            "category": "二叉树",
+            "url": "https://leetcode.cn/problems/populating-next-right-pointers-in-each-node-ii/"
+        },
+        {
+            "id": 114,
+            "title": "二叉树展开为链表",
+            "difficulty": "中等",
+            "passRate": 50,
+            "category": "二叉树",
+            "url": "https://leetcode.cn/problems/flatten-binary-tree-to-linked-list/"
+        },
+        {
+            "id": 112,
+            "title": "路径总和",
+            "difficulty": "中等",
+            "passRate": 60,
+            "category": "二叉树",
+            "url": "https://leetcode.cn/problems/path-sum/"
+        },
+        {
+            "id": 129,
+            "title": "求根节点到叶节点数字之和",
+            "difficulty": "中等",
+            "passRate": 45,
+            "category": "二叉树",
+            "url": "https://leetcode.cn/problems/sum-root-to-leaf-numbers/"
+        },
+        {
+            "id": 124,
+            "title": "二叉树中的最大路径和",
+            "difficulty": "困难",
+            "passRate": 35,
+            "category": "二叉树",
+            "url": "https://leetcode.cn/problems/binary-tree-maximum-path-sum/"
+        },
+        {
+            "id": 173,
+            "title": "二叉搜索树迭代器",
+            "difficulty": "中等",
+            "passRate": 60,
+            "category": "二叉树",
+            "url": "https://leetcode.cn/problems/binary-search-tree-iterator/"
+        },
+        {
+            "id": 222,
+            "title": "完全二叉树的节点个数",
+            "difficulty": "中等",
+            "passRate": 50,
+            "category": "二叉树",
+            "url": "https://leetcode.cn/problems/count-complete-tree-nodes/"
+        },
+        {
+            "id": 236,
+            "title": "二叉树的最近公共祖先",
+            "difficulty": "中等",
+            "passRate": 50,
+            "category": "二叉树",
+            "url": "https://leetcode.cn/problems/lowest-common-ancestor-of-a-binary-tree/"
+        },
+        {
+            "id": 199,
+            "title": "二叉树的右视图",
+            "difficulty": "中等",
+            "passRate": 50,
+            "category": "二叉树层次遍历",
+            "url": "https://leetcode.cn/problems/binary-tree-right-side-view/"
+        },
+        {
+            "id": 637,
+            "title": "二叉树的层平均值",
+            "difficulty": "简单",
+            "passRate": 70,
+            "category": "二叉树层次遍历",
+            "url": "https://leetcode.cn/problems/average-of-levels-in-binary-tree/"
+        },
+        {
+            "id": 102,
+            "title": "二叉树的层序遍历",
+            "difficulty": "简单",
+            "passRate": 60,
+            "category": "二叉树层次遍历",
+            "url": "https://leetcode.cn/problems/binary-tree-level-order-traversal/"
+        },
+        {
+            "id": 103,
+            "title": "二叉树的锯齿形层序遍历",
+            "difficulty": "中等",
+            "passRate": 55,
+            "category": "二叉树层次遍历",
+            "url": "https://leetcode.cn/problems/binary-tree-zigzag-level-order-traversal/"
+        },
+        {
+            "id": 530,
+            "title": "二叉搜索树的最小绝对差",
+            "difficulty": "简单",
+            "passRate": 55,
+            "category": "二叉搜索树",
+            "url": "https://leetcode.cn/problems/minimum-absolute-difference-in-bst/"
+        },
+        {
+            "id": 230,
+            "title": "二叉搜索树中第K小的元素",
+            "difficulty": "中等",
+            "passRate": 50,
+            "category": "二叉搜索树",
+            "url": "https://leetcode.cn/problems/kth-smallest-element-in-a-bst/"
+        },
+        {
+            "id": 98,
+            "title": "验证二叉搜索树",
+            "difficulty": "中等",
+            "passRate": 55,
+            "category": "二叉搜索树",
+            "url": "https://leetcode.cn/problems/validate-binary-search-tree/"
+        },
+        {
+            "id": 200,
+            "title": "岛屿数量",
+            "difficulty": "中等",
+            "passRate": 50,
+            "category": "图",
+            "url": "https://leetcode.cn/problems/number-of-islands/"
+        },
+        {
+            "id": 130,
+            "title": "被围绕的区域",
+            "difficulty": "中等",
+            "passRate": 50,
+            "category": "图",
+            "url": "https://leetcode.cn/problems/surrounded-regions/"
+        },
+        {
+            "id": 133,
+            "title": "克隆图",
+            "difficulty": "中等",
+            "passRate": 55,
+            "category": "图",
+            "url": "https://leetcode.cn/problems/clone-graph/"
+        },
+        {
+            "id": 399,
+            "title": "除法求值",
+            "difficulty": "中等",
+            "passRate": 40,
+            "category": "图",
+            "url": "https://leetcode.cn/problems/evaluate-division/"
+        },
+        {
+            "id": 207,
+            "title": "课程表",
+            "difficulty": "中等",
+            "passRate": 55,
+            "category": "图",
+            "url": "https://leetcode.cn/problems/course-schedule/"
+        },
+        {
+            "id": 210,
+            "title": "课程表 II",
+            "difficulty": "中等",
+            "passRate": 50,
+            "category": "图",
+            "url": "https://leetcode.cn/problems/course-schedule-ii/"
+        },
+        {
+            "id": 909,
+            "title": "蛇梯棋",
+            "difficulty": "中等",
+            "passRate": 0,
+            "category": "图的广度优先搜索",
+            "url": "https://leetcode.cn/problems/snakes-and-ladders/"
+        },
+        {
+            "id": 433,
+            "title": "最小基因变化",
+            "difficulty": "中等",
+            "passRate": 50,
+            "category": "图的广度优先搜索",
+            "url": "https://leetcode.cn/problems/minimum-genetic-mutation/"
+        },
+        {
+            "id": 127,
+            "title": "单词接龙",
+            "difficulty": "中等",
+            "passRate": 40,
+            "category": "图的广度优先搜索",
+            "url": "https://leetcode.cn/problems/word-ladder/"
+        },
+        {
+            "id": 208,
+            "title": "实现 Trie (前缀树)",
+            "difficulty": "中等",
+            "passRate": 0,
+            "category": "字典树",
+            "url": "https://leetcode.cn/problems/implement-trie-prefix-tree/"
+        },
+        {
+            "id": 211,
+            "title": "添加与搜索单词 - 数据结构设计",
+            "difficulty": "中等",
+            "passRate": 0,
+            "category": "字典树",
+            "url": "https://leetcode.cn/problems/design-add-and-search-words-data-structure/"
+        },
+        {
+            "id": 212,
+            "title": "单词搜索 II",
+            "difficulty": "困难",
+            "passRate": 0,
+            "category": "字典树",
+            "url": "https://leetcode.cn/problems/word-search-ii/"
+        },
+        {
+            "id": 17,
+            "title": "电话号码的字母组合",
+            "difficulty": "中等",
+            "passRate": 60,
+            "category": "回溯",
+            "url": "https://leetcode.cn/problems/letter-combinations-of-a-phone-number/"
+        },
+        {
+            "id": 77,
+            "title": "组合",
+            "difficulty": "中等",
+            "passRate": 60,
+            "category": "回溯",
+            "url": "https://leetcode.cn/problems/combinations/"
+        },
+        {
+            "id": 46,
+            "title": "全排列",
+            "difficulty": "中等",
+            "passRate": 60,
+            "category": "回溯",
+            "url": "https://leetcode.cn/problems/permutations/"
+        },
+        {
+            "id": 39,
+            "title": "组合总和",
+            "difficulty": "中等",
+            "passRate": 55,
+            "category": "回溯",
+            "url": "https://leetcode.cn/problems/combination-sum/"
+        },
+        {
+            "id": 52,
+            "title": "N皇后 II",
+            "difficulty": "困难",
+            "passRate": 35,
+            "category": "回溯",
+            "url": "https://leetcode.cn/problems/n-queens-ii/"
+        },
+        {
+            "id": 22,
+            "title": "括号生成",
+            "difficulty": "中等",
+            "passRate": 40,
+            "category": "回溯",
+            "url": "https://leetcode.cn/problems/generate-parentheses/"
+        },
+        {
+            "id": 79,
+            "title": "单词搜索",
+            "difficulty": "中等",
+            "passRate": 50,
+            "category": "回溯",
+            "url": "https://leetcode.cn/problems/word-search/"
+        },
+        {
+            "id": 108,
+            "title": "将有序数组转换为二叉搜索树",
+            "difficulty": "中等",
+            "passRate": 60,
+            "category": "分治",
+            "url": "https://leetcode.cn/problems/convert-sorted-array-to-binary-search-tree/"
+        },
+        {
+            "id": 148,
+            "title": "排序链表",
+            "difficulty": "中等",
+            "passRate": 0,
+            "category": "分治",
+            "url": "https://leetcode.cn/problems/sort-list/"
+        },
+        {
+            "id": 427,
+            "title": "建立四叉树",
+            "difficulty": "中等",
+            "passRate": 45,
+            "category": "分治",
+            "url": "https://leetcode.cn/problems/construct-quad-tree/"
+        },
+        {
+            "id": 23,
+            "title": "合并 K 个升序链表",
+            "difficulty": "困难",
+            "passRate": 45,
+            "category": "分治",
+            "url": "https://leetcode.cn/problems/merge-k-sorted-lists/"
+        },
+        {
+            "id": 53,
+            "title": "最大子数组和",
+            "difficulty": "简单",
+            "passRate": 60,
+            "category": "Kadane 算法",
+            "url": "https://leetcode.cn/problems/maximum-subarray/"
+        },
+        {
+            "id": 918,
+            "title": "环形子数组的最大和",
+            "difficulty": "中等",
+            "passRate": 0,
+            "category": "Kadane 算法",
+            "url": "https://leetcode.cn/problems/maximum-sum-circular-subarray/"
+        },
+        {
+            "id": 35,
+            "title": "搜索插入位置",
+            "difficulty": "简单",
+            "passRate": 60,
+            "category": "二分查找",
+            "url": "https://leetcode.cn/problems/search-insert-position/"
+        },
+        {
+            "id": 74,
+            "title": "搜索二维矩阵",
+            "difficulty": "中等",
+            "passRate": 0,
+            "category": "二分查找",
+            "url": "https://leetcode.cn/problems/search-a-2d-matrix/"
+        },
+        {
+            "id": 162,
+            "title": "寻找峰值",
+            "difficulty": "中等",
+            "passRate": 0,
+            "category": "二分查找",
+            "url": "https://leetcode.cn/problems/find-peak-element/"
+        },
+        {
+            "id": 33,
+            "title": "搜索旋转排序数组",
+            "difficulty": "中等",
+            "passRate": 0,
+            "category": "二分查找",
+            "url": "https://leetcode.cn/problems/search-in-rotated-sorted-array/"
+        },
+        {
+            "id": 34,
+            "title": "在排序数组中查找元素的第一个和最后一个位置",
+            "difficulty": "中等",
+            "passRate": 41,
+            "category": "二分查找",
+            "url": "https://leetcode.cn/problems/find-first-and-last-position-of-element-in-sorted-array/"
+        },
+        {
+            "id": 153,
+            "title": "寻找旋转排序数组中的最小值",
+            "difficulty": "中等",
+            "passRate": 0,
+            "category": "二分查找",
+            "url": "https://leetcode.cn/problems/find-minimum-in-rotated-sorted-array/"
+        },
+        {
+            "id": 4,
+            "title": "寻找两个正序数组的中位数",
+            "difficulty": "困难",
+            "passRate": 0,
+            "category": "二分查找",
+            "url": "https://leetcode.cn/problems/median-of-two-sorted-arrays/"
+        },
+        {
+            "id": 215,
+            "title": "数组中的第K个最大元素",
+            "difficulty": "中等",
+            "passRate": 55,
+            "category": "堆",
+            "url": "https://leetcode.cn/problems/kth-largest-element-in-an-array/"
+        },
+        {
+            "id": 502,
+            "title": "IPO",
+            "difficulty": "困难",
+            "passRate": 0,
+            "category": "堆",
+            "url": "https://leetcode.cn/problems/ipo/"
+        },
+        {
+            "id": 373,
+            "title": "查找和最小的 K 对数字",
+            "difficulty": "中等",
+            "passRate": 0,
+            "category": "堆",
+            "url": "https://leetcode.cn/problems/find-k-pairs-with-smallest-sums/"
+        },
+        {
+            "id": 295,
+            "title": "数据流的中位数",
+            "difficulty": "困难",
+            "passRate": 35,
+            "category": "堆",
+            "url": "https://leetcode.cn/problems/find-median-from-data-stream/"
+        },
+        {
+            "id": 67,
+            "title": "二进制求和",
+            "difficulty": "简单",
+            "passRate": 70,
+            "category": "位运算",
+            "url": "https://leetcode.cn/problems/add-binary/"
+        },
+        {
+            "id": 190,
+            "title": "颠倒二进制位",
+            "difficulty": "简单",
+            "passRate": 60,
+            "category": "位运算",
+            "url": "https://leetcode.cn/problems/reverse-bits/"
+        },
+        {
+            "id": 191,
+            "title": "位1的个数",
+            "difficulty": "简单",
+            "passRate": 60,
+            "category": "位运算",
+            "url": "https://leetcode.cn/problems/number-of-1-bits/"
+        },
+        {
+            "id": 136,
+            "title": "只出现一次的数字",
+            "difficulty": "简单",
+            "passRate": 60,
+            "category": "位运算",
+            "url": "https://leetcode.cn/problems/single-number/"
+        },
+        {
+            "id": 137,
+            "title": "只出现一次的数字 II",
+            "difficulty": "中等",
+            "passRate": 0,
+            "category": "位运算",
+            "url": "https://leetcode.cn/problems/single-number-ii/"
+        },
+        {
+            "id": 201,
+            "title": "数字范围按位与",
+            "difficulty": "中等",
+            "passRate": 0,
+            "category": "位运算",
+            "url": "https://leetcode.cn/problems/bitwise-and-of-numbers-range/"
+        },
+        {
+            "id": 9,
+            "title": "回文数",
+            "difficulty": "简单",
+            "passRate": 50,
+            "category": "数学",
+            "url": "https://leetcode.cn/problems/palindrome-number/"
+        },
+        {
+            "id": 66,
+            "title": "加一",
+            "difficulty": "简单",
+            "passRate": 65,
+            "category": "数学",
+            "url": "https://leetcode.cn/problems/plus-one/"
+        },
+        {
+            "id": 172,
+            "title": "阶乘后的零",
+            "difficulty": "简单",
+            "passRate": 46,
+            "category": "数学",
+            "url": "https://leetcode.cn/problems/factorial-trailing-zeroes/"
+        },
+        {
+            "id": 69,
+            "title": "x 的平方根 ",
+            "difficulty": "简单",
+            "passRate": 39,
+            "category": "数学",
+            "url": "https://leetcode.cn/problems/sqrtx/"
+        },
+        {
+            "id": 50,
+            "title": "Pow(x, n)",
+            "difficulty": "中等",
+            "passRate": 40,
+            "category": "数学",
+            "url": "https://leetcode.cn/problems/powx-n/"
+        },
+        {
+            "id": 149,
+            "title": "直线上最多的点数",
+            "difficulty": "困难",
+            "passRate": 0,
+            "category": "数学",
+            "url": "https://leetcode.cn/problems/max-points-on-a-line/"
+        },
+        {
+            "id": 70,
+            "title": "爬楼梯",
+            "difficulty": "简单",
+            "passRate": 52,
+            "category": "一维动态规划",
+            "url": "https://leetcode.cn/problems/climbing-stairs/"
+        },
+        {
+            "id": 198,
+            "title": "打家劫舍",
+            "difficulty": "简单",
+            "passRate": 60,
+            "category": "一维动态规划",
+            "url": "https://leetcode.cn/problems/house-robber/"
+        },
+        {
+            "id": 139,
+            "title": "单词拆分",
+            "difficulty": "中等",
+            "passRate": 50,
+            "category": "一维动态规划",
+            "url": "https://leetcode.cn/problems/word-break/"
+        },
+        {
+            "id": 322,
+            "title": "零钱兑换",
+            "difficulty": "中等",
+            "passRate": 40,
+            "category": "一维动态规划",
+            "url": "https://leetcode.cn/problems/coin-change/"
+        },
+        {
+            "id": 300,
+            "title": "最长递增子序列",
+            "difficulty": "中等",
+            "passRate": 58,
+            "category": "一维动态规划",
+            "url": "https://leetcode.cn/problems/longest-increasing-subsequence/"
+        },
+        {
+            "id": 120,
+            "title": "三角形最小路径和",
+            "difficulty": "困难",
+            "passRate": 40,
+            "category": "多维动态规划",
+            "url": "https://leetcode.cn/problems/triangle/"
+        },
+        {
+            "id": 64,
+            "title": "最小路径和",
+            "difficulty": "中等",
+            "passRate": 50,
+            "category": "多维动态规划",
+            "url": "https://leetcode.cn/problems/minimum-path-sum/"
+        },
+        {
+            "id": 63,
+            "title": "不同路径 II",
+            "difficulty": "中等",
+            "passRate": 55,
+            "category": "多维动态规划",
+            "url": "https://leetcode.cn/problems/unique-paths-ii/"
+        },
+        {
+            "id": 5,
+            "title": "最长回文子串",
+            "difficulty": "中等",
+            "passRate": 44,
+            "category": "多维动态规划",
+            "url": "https://leetcode.cn/problems/longest-palindromic-substring/"
+        },
+        {
+            "id": 97,
+            "title": "交错字符串",
+            "difficulty": "中等",
+            "passRate": 45,
+            "category": "多维动态规划",
+            "url": "https://leetcode.cn/problems/interleaving-string/"
+        },
+        {
+            "id": 72,
+            "title": "编辑距离",
+            "difficulty": "困难",
+            "passRate": 40,
+            "category": "多维动态规划",
+            "url": "https://leetcode.cn/problems/edit-distance/"
+        },
+        {
+            "id": 123,
+            "title": "买卖股票的最佳时机 III",
+            "difficulty": "困难",
+            "passRate": 40,
+            "category": "多维动态规划",
+            "url": "https://leetcode.cn/problems/best-time-to-buy-and-sell-stock-iii/"
+        },
+        {
+            "id": 188,
+            "title": "买卖股票的最佳时机 IV",
+            "difficulty": "困难",
+            "passRate": 35,
+            "category": "多维动态规划",
+            "url": "https://leetcode.cn/problems/best-time-to-buy-and-sell-stock-iv/"
+        },
+        {
+            "id": 221,
+            "title": "最大正方形",
+            "difficulty": "中等",
+            "passRate": 55,
+            "category": "多维动态规划",
+            "url": "https://leetcode.cn/problems/maximal-square/"
+        }
+    ]
+}

@@ -92,17 +92,23 @@ function renderCurrentChart() {
  */
 function getRoundProgressData() {
     const roundData = [];
-    const roundNames = ['第一轮', '第二轮', '第三轮', '第四轮', '数据库'];
-    const roundColors = ['#4CAF50', '#2196F3', '#FF9800', '#f44336', '#9C27B0'];
-    const roundBgColors = ['rgba(76, 175, 80, 0.2)', 'rgba(33, 150, 243, 0.2)', 'rgba(255, 152, 0, 0.2)', 'rgba(244, 67, 54, 0.2)', 'rgba(156, 39, 176, 0.2)'];
+    const roundMeta = {
+        round1: { name: '第一轮', color: '#4CAF50', bgColor: 'rgba(76, 175, 80, 0.2)' },
+        round2: { name: '第二轮', color: '#2196F3', bgColor: 'rgba(33, 150, 243, 0.2)' },
+        round3: { name: '第三轮', color: '#FF9800', bgColor: 'rgba(255, 152, 0, 0.2)' },
+        round4: { name: '第四轮', color: '#f44336', bgColor: 'rgba(244, 67, 54, 0.2)' },
+        round5: { name: '数据库', color: '#9C27B0', bgColor: 'rgba(156, 39, 176, 0.2)' },
+        round6: { name: 'Hot100', color: '#00BCD4', bgColor: 'rgba(0, 188, 212, 0.2)' },
+        round7: { name: '面试经典150', color: '#8BC34A', bgColor: 'rgba(139, 195, 74, 0.2)' }
+    };
 
-    for (let i = 1; i <= 5; i++) {
-        const roundKey = `round${i}`;
+    getOrderedRoundKeys().forEach(roundKey => {
         const round = problemsData[roundKey];
+        const meta = roundMeta[roundKey] || { name: round?.name || roundKey, color: '#667eea', bgColor: 'rgba(102, 126, 234, 0.2)' };
 
         if (!round || !round.categories) {
-            roundData.push({ name: roundNames[i - 1], solved: 0, total: 0, percent: 0, color: roundColors[i - 1], bgColor: roundBgColors[i - 1] });
-            continue;
+            roundData.push({ name: meta.name, solved: 0, total: 0, percent: 0, color: meta.color, bgColor: meta.bgColor });
+            return;
         }
 
         let solved = 0;
@@ -111,15 +117,15 @@ function getRoundProgressData() {
         round.categories.forEach(category => {
             total += category.problems.length;
             category.problems.forEach(problemNum => {
-                if (userProgress[roundKey] && userProgress[roundKey][problemNum]) {
+                if (isProblemSolved(problemNum)) {
                     solved++;
                 }
             });
         });
 
         const percent = total > 0 ? Math.round((solved / total) * 100) : 0;
-        roundData.push({ name: roundNames[i - 1], solved, total, percent, color: roundColors[i - 1], bgColor: roundBgColors[i - 1] });
-    }
+        roundData.push({ name: meta.name, solved, total, percent, color: meta.color, bgColor: meta.bgColor, roundKey });
+    });
 
     return roundData;
 }
@@ -457,7 +463,7 @@ function getCategoryProgressData() {
             categoryData[category.name].total += category.problems.length;
 
             category.problems.forEach(problemNum => {
-                if (userProgress[roundKey] && userProgress[roundKey][problemNum]) {
+                if (isProblemSolved(problemNum)) {
                     categoryData[category.name].solved++;
                 }
             });

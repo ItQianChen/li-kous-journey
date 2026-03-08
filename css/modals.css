@@ -150,6 +150,8 @@
 .tip-badge.round3 { background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%); }
 .tip-badge.round4 { background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%); }
 .tip-badge.round5 { background: linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%); }
+.tip-badge.round6 { background: linear-gradient(135deg, #00BCD4 0%, #0097A7 100%); }
+.tip-badge.round7 { background: linear-gradient(135deg, #8BC34A 0%, #689F38 100%); }
 
 .tip-title { font-size: 1.3rem; font-weight: bold; color: #333; }
 .tip-content { margin: 0.8rem 0; line-height: 1.8; color: #555; font-size: 1rem; }
@@ -198,6 +200,8 @@
 .choice-round.round3 { background: #FF9800; }
 .choice-round.round4 { background: #f44336; }
 .choice-round.round5 { background: #9C27B0; }
+.choice-round.round6 { background: #00BCD4; }
+.choice-round.round7 { background: #8BC34A; }
 
 .choice-category { font-size: 1rem; font-weight: bold; color: #333; }
 
@@ -531,3 +535,5 @@
 .legend-item.round3 .legend-percent { color: #FF9800; }
 .legend-item.round4 .legend-percent { color: #f44336; }
 .legend-item.round5 .legend-percent { color: #9C27B0; }
+.legend-item.round6 .legend-percent { color: #00BCD4; }
+.legend-item.round7 .legend-percent { color: #8BC34A; }

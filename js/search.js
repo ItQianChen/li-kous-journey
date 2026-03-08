@@ -40,7 +40,10 @@ function searchProblems() {
                 const roundName = problemsData[loc.roundKey].name.split(' ')[0];
                 locationInfo = `<span class="search-category" title="${roundName} - ${loc.category}">${roundName} - ${loc.category}</span>`;
             } else if (locations.length > 1) {
-                locationInfo = `<span class="search-category multiple" title="该题目存在于多个分类中">多个分类</span>`;
+                const locationTitle = locations
+                    .map(loc => `${problemsData[loc.roundKey].name.split(' ')[0]} - ${loc.category}`)
+                    .join('\n');
+                locationInfo = `<span class="search-category multiple" title="${locationTitle}">多个分类</span>`;
             }
 
             return `
@@ -85,13 +88,18 @@ function selectProblem(problemId) {
  */
 function findProblemLocations(problemId) {
     const locations = [];
-    ['round1', 'round2', 'round3', 'round4', 'round5'].forEach((roundKey, roundIndex) => {
-        problemsData[roundKey].categories.forEach(category => {
+    getOrderedRoundKeys().forEach(roundKey => {
+        const roundData = problemsData[roundKey];
+        if (!roundData || !roundData.categories) {
+            return;
+        }
+
+        roundData.categories.forEach(category => {
             if (category.problems.includes(problemId) || category.problems.includes(problemId.toString())) {
                 locations.push({
-                    round: roundIndex + 1,
+                    round: Number(roundKey.replace('round', '')),
                     category: category.name,
-                    roundKey: roundKey
+                    roundKey
                 });
             }
         });

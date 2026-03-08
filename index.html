@@ -125,11 +125,13 @@
 
         <!-- 轮次选择 -->
         <div class="round-selector">
-            <button class="round-btn active" onclick="selectRound(1)">第一轮 (简单 50%+)</button>
-            <button class="round-btn" onclick="selectRound(2)">第二轮 (中等 50%+)</button>
-            <button class="round-btn" onclick="selectRound(3)">第三轮 (算法理论)</button>
-            <button class="round-btn" onclick="selectRound(4)">第四轮 (困难)</button>
-            <button class="round-btn" onclick="selectRound(5)">数据库轮次 (SQL)</button>
+            <button class="round-btn active" data-round-key="round1" onclick="selectRound(1)">第一轮 (简单 50%+)</button>
+            <button class="round-btn" data-round-key="round2" onclick="selectRound(2)">第二轮 (中等 50%+)</button>
+            <button class="round-btn" data-round-key="round3" onclick="selectRound(3)">第三轮 (算法理论)</button>
+            <button class="round-btn" data-round-key="round4" onclick="selectRound(4)">第四轮 (困难)</button>
+            <button class="round-btn" data-round-key="round5" onclick="selectRound(5)">数据库轮次 (SQL)</button>
+            <button class="round-btn" data-round-key="round6" onclick="selectRound(6)">Hot100</button>
+            <button class="round-btn" data-round-key="round7" onclick="selectRound(7)">面试经典150</button>
         </div>
 
         <!-- 题目分类面板 -->

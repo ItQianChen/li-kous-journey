@@ -2,20 +2,22 @@
 
 /**
  * 选择并显示指定轮次的内容。
- * @param {number} round - 要选择的轮次编号 (1-5)。
+ * @param {number} round - 要选择的轮次编号。
  * @param {string} categoryName - 可选，要选择的分类名称。
  */
 function selectRound(round, categoryName = null) {
     currentRound = round;
     selectedCategory = null;
 
+    const roundKey = `round${round}`;
+
     // 更新轮次选择按钮的激活状态
-    const buttons = document.querySelectorAll('.round-btn');
-    buttons.forEach((btn, index) => {
-        btn.classList.toggle('active', index + 1 === round);
+    document.querySelectorAll('.round-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.roundKey === roundKey);
     });
 
     renderCategories(categoryName);
+    saveCurrentViewState(); // 依赖 data.js
     updateStats();
     updateGlobalStats();
 }
@@ -48,7 +50,7 @@ function renderCategories(targetCategoryName = null) {
     selectedCategory = roundData.categories[targetIndex];
 
     roundData.categories.forEach((category, index) => {
-        const solved = category.problems.filter(p => userProgress[roundKey] && userProgress[roundKey][p]).length;
+        const solved = category.problems.filter(problemNum => isProblemSolved(problemNum)).length;
         const total = category.problems.length;
         const percentage = total > 0 ? Math.round((solved / total) * 100) : 0;
 
@@ -72,6 +74,7 @@ function renderCategories(targetCategoryName = null) {
             document.querySelectorAll('.category-card').forEach(c => c.classList.remove('active'));
             card.classList.add('active');
             selectedCategory = category;
+            saveCurrentViewState(); // 依赖 data.js
             renderProblems();
         };
 
@@ -117,11 +120,11 @@ function renderProblems() {
         const item = document.createElement('div');
         item.className = 'problem-item';
 
-        const isSolved = userProgress[roundKey] && userProgress[roundKey][problemNum];
+        const solvedInfo = getProblemProgress(problemNum);
+        const solved = Boolean(solvedInfo);
         let solvedDateStr = '';
-        if (isSolved) {
+        if (solved) {
             item.classList.add('solved');
-            const solvedInfo = userProgress[roundKey][problemNum];
             if (solvedInfo.solvedAt) {
                 const solvedDate = new Date(solvedInfo.solvedAt);
                 solvedDateStr = `${solvedDate.getFullYear()}-${String(solvedDate.getMonth() + 1).padStart(2, '0')}-${String(solvedDate.getDate()).padStart(2, '0')} ${String(solvedDate.getHours()).padStart(2, '0')}:${String(solvedDate.getMinutes()).padStart(2, '0')}`;
@@ -135,16 +138,13 @@ function renderProblems() {
             </div>
         `;
 
-        if (isSolved) {
-            const solvedInfo = userProgress[roundKey][problemNum];
-            if (solvedInfo.solvedAt) {
-                const solvedDate = new Date(solvedInfo.solvedAt);
-                const dateStr = `${solvedDate.getMonth() + 1}/${solvedDate.getDate()}`;
-                const dateBadge = document.createElement('div');
-                dateBadge.className = 'solved-date-badge';
-                dateBadge.textContent = dateStr;
-                item.appendChild(dateBadge);
-            }
+        if (solved && solvedInfo.solvedAt) {
+            const solvedDate = new Date(solvedInfo.solvedAt);
+            const dateStr = `${solvedDate.getMonth() + 1}/${solvedDate.getDate()}`;
+            const dateBadge = document.createElement('div');
+            dateBadge.className = 'solved-date-badge';
+            dateBadge.textContent = dateStr;
+            item.appendChild(dateBadge);
         }
 
         if (problemInfo.url) {
@@ -159,7 +159,7 @@ function renderProblems() {
             item.appendChild(linkBtn);
         }
 
-        item.title = isSolved && solvedDateStr
+        item.title = solved && solvedDateStr
             ? `题目 ${problemNum}: ${problemInfo.title}\n打卡时间: ${solvedDateStr}\n点击取消打卡`
             : `题目 ${problemNum}: ${problemInfo.title}\n点击打卡`;
 
@@ -194,10 +194,10 @@ function toggleProblem(roundKey, problemNum, element) {
         userProgress[roundKey] = {};
     }
 
-    const isSolved = userProgress[roundKey][problemNum];
+    const solved = isProblemSolved(problemNum);
 
-    if (isSolved) {
-        delete userProgress[roundKey][problemNum];
+    if (solved) {
+        clearProblemProgress(problemNum);
         element.classList.remove('solved');
     } else {
         userProgress[roundKey][problemNum] = {
@@ -216,8 +216,8 @@ function toggleProblem(roundKey, problemNum, element) {
     saveUserProgress(); // 依赖 data.js
     updateStats();
     updateGlobalStats(); // 更新全局统计（连续打卡、今日答题、当前进度）
-    // 修复：传递当前选中的分类名称，避免打卡后跳转到第一个分类
     renderCategories(selectedCategory ? selectedCategory.name : null);
+    saveCurrentViewState(); // 依赖 data.js
     renderCalendar(); // 依赖 calendar.js
 }
 
@@ -236,7 +236,7 @@ function updateStats() {
     roundData.categories.forEach(category => {
         totalProblems += category.problems.length;
         category.problems.forEach(problemNum => {
-            if (userProgress[roundKey] && userProgress[roundKey][problemNum]) {
+            if (isProblemSolved(problemNum)) {
                 solvedProblems++;
             }
         });
@@ -337,30 +337,30 @@ function getTodayProblemCount() {
  * 找到第一个未完成的分类作为当前进度
  */
 function getCurrentProgressText() {
-    const roundNames = ['一', '二', '三', '四', '数据库'];
+    const roundNameMap = {
+        round1: '第一轮',
+        round2: '第二轮',
+        round3: '第三轮',
+        round4: '第四轮',
+        round5: '数据库',
+        round6: 'Hot100',
+        round7: '面试经典150'
+    };
 
-    // 遍历所有轮次，找到第一个未完成的分类
-    for (let round = 1; round <= 5; round++) {
-        const roundKey = `round${round}`;
+    for (const roundKey of getOrderedRoundKeys()) {
         const roundData = problemsData[roundKey];
-
         if (!roundData || !roundData.categories) continue;
 
         for (const category of roundData.categories) {
-            const solved = category.problems.filter(p =>
-                userProgress[roundKey] && userProgress[roundKey][p]
-            ).length;
+            const solved = category.problems.filter(problemNum => isProblemSolved(problemNum)).length;
             const total = category.problems.length;
 
-            // 如果这个分类未完成，就是当前进度
             if (solved < total) {
-                const roundName = round === 5 ? roundNames[round - 1] : `第${roundNames[round - 1]}轮`;
-                return `${roundName}·${category.name}`;
+                return `${roundNameMap[roundKey] || roundData.name}·${category.name}`;
             }
         }
     }
 
-    // 如果全部完成
     return '🎉 全部完成';
 }
 
@@ -369,27 +369,25 @@ function getCurrentProgressText() {
  * @returns {{round: number, category: string}|null} 返回当前进度的轮次和分类，如果全部完成则返回null
  */
 function getCurrentProgress() {
-    // 遍历所有轮次，找到第一个未完成的分类
-    for (let round = 1; round <= 5; round++) {
-        const roundKey = `round${round}`;
-        const roundData = problemsData[roundKey];
+    const roundKeys = getOrderedRoundKeys();
 
+    for (const roundKey of roundKeys) {
+        const roundData = problemsData[roundKey];
         if (!roundData || !roundData.categories) continue;
 
         for (const category of roundData.categories) {
-            const solved = category.problems.filter(p =>
-                userProgress[roundKey] && userProgress[roundKey][p]
-            ).length;
+            const solved = category.problems.filter(problemNum => isProblemSolved(problemNum)).length;
             const total = category.problems.length;
 
-            // 如果这个分类未完成，就是当前进度
             if (solved < total) {
-                return { round: round, category: category.name };
+                return {
+                    round: Number(roundKey.replace('round', '')),
+                    category: category.name
+                };
             }
         }
     }
 
-    // 如果全部完成，返回null
     return null;
 }
 
@@ -397,6 +395,12 @@ function getCurrentProgress() {
  * 跳转到当前进度位置
  */
 function jumpToCurrentProgress() {
+    const savedViewState = loadUserViewState(); // 依赖 data.js
+    if (savedViewState) {
+        selectRound(savedViewState.round, savedViewState.category);
+        return;
+    }
+
     const progress = getCurrentProgress();
     if (progress) {
         selectRound(progress.round, progress.category);
@@ -418,7 +422,7 @@ function getOverallStats() {
         problemsData[roundKey].categories.forEach(category => {
             totalProblems += category.problems.length;
             category.problems.forEach(problemNum => {
-                if (userProgress[roundKey] && userProgress[roundKey][problemNum]) {
+                if (isProblemSolved(problemNum)) {
                     totalSolved++;
                 }
             });

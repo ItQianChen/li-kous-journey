@@ -1,16 +1,185 @@
 // js/data.js
 
+const DEFAULT_ROUND_KEYS = ['round1', 'round2', 'round3', 'round4', 'round5', 'round6', 'round7'];
+
 /**
- * 从 problems-data.json 文件异步加载所有题目数据。
- * 加载后，会自动根据规则将题目组织到不同轮次，并检查用户登录状态。
+ * 获取当前项目的轮次键名，按 round1 -> roundN 排序。
+ * @returns {string[]}
+ */
+function getOrderedRoundKeys() {
+    const roundKeys = Object.keys(problemsData || {});
+    if (roundKeys.length === 0) {
+        return [...DEFAULT_ROUND_KEYS];
+    }
+
+    return roundKeys.sort((a, b) => {
+        const aNum = Number(a.replace('round', ''));
+        const bNum = Number(b.replace('round', ''));
+        return aNum - bNum;
+    });
+}
+
+/**
+ * 创建空的用户进度对象。
+ * @returns {Object<string, Object>}
+ */
+function createEmptyUserProgress() {
+    return getOrderedRoundKeys().reduce((progress, roundKey) => {
+        progress[roundKey] = {};
+        return progress;
+    }, {});
+}
+
+/**
+ * 确保用户进度结构包含所有轮次。
+ */
+function ensureUserProgressStructure() {
+    const emptyProgress = createEmptyUserProgress();
+    userProgress = {
+        ...emptyProgress,
+        ...(userProgress || {})
+    };
+
+    getOrderedRoundKeys().forEach(roundKey => {
+        if (!userProgress[roundKey] || typeof userProgress[roundKey] !== 'object') {
+            userProgress[roundKey] = {};
+        }
+    });
+}
+
+/**
+ * 获取当前用户视图状态的存储键。
+ * @returns {string|null}
+ */
+function getUserViewStateStorageKey() {
+    return currentUser ? `viewState_${currentUser}` : null;
+}
+
+/**
+ * 读取当前用户上次浏览的轮次和分类。
+ * @returns {{round: number, category: string|null}|null}
+ */
+function loadUserViewState() {
+    const storageKey = getUserViewStateStorageKey();
+    if (!storageKey) {
+        return null;
+    }
+
+    const saved = localStorage.getItem(storageKey);
+    if (!saved) {
+        return null;
+    }
+
+    try {
+        const parsed = JSON.parse(saved);
+        const round = Number(parsed?.round);
+        const roundKey = `round${round}`;
+        const roundData = problemsData[roundKey];
+
+        if (!Number.isInteger(round) || !roundData || !Array.isArray(roundData.categories) || roundData.categories.length === 0) {
+            localStorage.removeItem(storageKey);
+            return null;
+        }
+
+        const category = typeof parsed.category === 'string' && parsed.category.trim()
+            ? parsed.category.trim()
+            : null;
+
+        if (category && !roundData.categories.some(item => item.name === category)) {
+            return { round, category: null };
+        }
+
+        return { round, category };
+    } catch (error) {
+        localStorage.removeItem(storageKey);
+        return null;
+    }
+}
+
+/**
+ * 保存当前用户正在浏览的轮次和分类。
+ */
+function saveCurrentViewState() {
+    const storageKey = getUserViewStateStorageKey();
+    if (!storageKey || !currentRound) {
+        return;
+    }
+
+    localStorage.setItem(storageKey, JSON.stringify({
+        round: currentRound,
+        category: selectedCategory?.name || null
+    }));
+}
+
+/**
+ * 获取题目的全局打卡信息。
+ * 题目只要在任意轮次打卡过，就视为已刷。
+ * @param {number|string} problemNum
+ * @returns {{roundKey: string, solvedAt?: string, round?: string}|null}
+ */
+function getProblemProgress(problemNum) {
+    const problemId = problemNum.toString();
+
+    for (const roundKey of getOrderedRoundKeys()) {
+        if (userProgress[roundKey] && userProgress[roundKey][problemId]) {
+            return userProgress[roundKey][problemId];
+        }
+    }
+
+    return null;
+}
+
+/**
+ * 判断题目是否已在任意轮次完成。
+ * @param {number|string} problemNum
+ * @returns {boolean}
+ */
+function isProblemSolved(problemNum) {
+    return Boolean(getProblemProgress(problemNum));
+}
+
+/**
+ * 删除题目在所有轮次中的打卡记录。
+ * @param {number|string} problemNum
+ */
+function clearProblemProgress(problemNum) {
+    const problemId = problemNum.toString();
+    Object.keys(userProgress).forEach(roundKey => {
+        if (userProgress[roundKey] && userProgress[roundKey][problemId]) {
+            delete userProgress[roundKey][problemId];
+        }
+    });
+}
+
+/**
+ * 从基础题库、Hot100 和面试经典150题库异步加载所有题目数据。
+ * 加载后，会自动组织轮次并检查用户登录状态。
  */
 async function loadProblemsData() {
     try {
-        const response = await fetch('problems-data.json');
-        const data = await response.json();
-        allProblems = data.problems;
+        const [baseResponse, hot100Response, interview150Response] = await Promise.all([
+            fetch('problems-data.json'),
+            fetch('hot100-data.json'),
+            fetch('interview150-data.json')
+        ]);
+        const [baseData, hot100Data, interview150Data] = await Promise.all([
+            baseResponse.json(),
+            hot100Response.json(),
+            interview150Response.json()
+        ]);
 
-        organizeProblemsByRounds();
+        const mergedProblems = new Map();
+        [baseData.problems, hot100Data.problems, interview150Data.problems].forEach(problemList => {
+            problemList.forEach(problem => {
+                if (!mergedProblems.has(problem.id.toString())) {
+                    mergedProblems.set(problem.id.toString(), problem);
+                }
+            });
+        });
+
+        allProblems = Array.from(mergedProblems.values());
+
+        organizeProblemsByRounds(baseData.problems, hot100Data.problems, interview150Data.problems);
         checkLogin(); // 依赖 auth.js
     } catch (error) {
         console.error('加载题目数据失败:', error);
@@ -19,21 +188,25 @@ async function loadProblemsData() {
 }
 
 /**
- * 根据题目的难度和通过率，将它们自动分配到四个不同的轮次中。
+ * 根据基础题库、Hot100 与面试经典150题库，组织各轮次题目。
+ * @param {Array} baseProblems
+ * @param {Array} hot100Problems
+ * @param {Array} interview150Problems
  */
-function organizeProblemsByRounds() {
-    // 初始化数据结构
+function organizeProblemsByRounds(baseProblems = [], hot100Problems = [], interview150Problems = []) {
     problemsData = {
         round1: { name: "第一轮 (简单 50%+)", description: "难度简单，通过率在50%以上的题目", categories: {} },
         round2: { name: "第二轮 (中等 50%+)", description: "难度中等，通过率在50%以上的题目", categories: {} },
         round3: { name: "第三轮 (算法理论)", description: "学习算法理论后，刷树、图、贪心、动态规划", categories: {} },
         round4: { name: "第四轮 (困难)", description: "困难题目和通过率低于50%的题目", categories: {} },
-        round5: { name: "数据库轮次 (SQL)", description: "专门针对 SQL 数据库题目的练习轮次", categories: {} }
+        round5: { name: "数据库轮次 (SQL)", description: "专门针对 SQL 数据库题目的练习轮次", categories: {} },
+        round6: { name: "Hot100", description: "力扣 Hot100 单独刷题分类", categories: {} },
+        round7: { name: "面试经典150", description: "LeetCode 面试经典 150 题单独刷题分类", categories: {} }
     };
 
     const round3Categories = ['树', '图与回溯算法', '贪心', '动态规划'];
 
-    allProblems.forEach(problem => {
+    baseProblems.forEach(problem => {
         const { difficulty, passRate, category } = problem;
 
         if (category === 'SQL') {
@@ -65,11 +238,26 @@ function organizeProblemsByRounds() {
         }
     });
 
-    // 转换categories对象为数组格式
-    ['round1', 'round2', 'round3', 'round4', 'round5'].forEach(roundKey => {
+    hot100Problems.forEach(problem => {
+        const hot100Category = problem.category || 'Hot100';
+        if (!problemsData.round6.categories[hot100Category]) {
+            problemsData.round6.categories[hot100Category] = [];
+        }
+        problemsData.round6.categories[hot100Category].push(problem.id);
+    });
+
+    interview150Problems.forEach(problem => {
+        const interview150Category = problem.category || '面试经典150';
+        if (!problemsData.round7.categories[interview150Category]) {
+            problemsData.round7.categories[interview150Category] = [];
+        }
+        problemsData.round7.categories[interview150Category].push(problem.id);
+    });
+
+    getOrderedRoundKeys().forEach(roundKey => {
         const categoriesObj = problemsData[roundKey].categories;
         problemsData[roundKey].categories = Object.keys(categoriesObj).map(name => ({
-            name: name,
+            name,
             problems: categoriesObj[name]
         }));
     });
@@ -84,14 +272,17 @@ function loadUserProgress() {
     if (saved) {
         userProgress = JSON.parse(saved);
     } else {
-        userProgress = { round1: {}, round2: {}, round3: {}, round4: {}, round5: {} };
+        userProgress = createEmptyUserProgress();
     }
+
+    ensureUserProgressStructure();
 }
 
 /**
  * 将当前用户的进度保存到本地存储。
  */
 function saveUserProgress() {
+    ensureUserProgressStructure();
     localStorage.setItem(`progress_${currentUser}`, JSON.stringify(userProgress));
 }
 
@@ -140,7 +331,7 @@ function handleImport(event) {
             if (confirm('⚠️ 导入数据将覆盖当前进度，确定要继续吗？\n\n建议先导出当前数据作为备份。')) {
                 userProgress = imported;
                 saveUserProgress();
-                selectRound(currentRound); // 依赖 ui.js
+                selectRound(currentRound, selectedCategory ? selectedCategory.name : null); // 依赖 ui.js
                 alert('✅ 进度数据导入成功！');
                 closeDataMenu(); // 依赖 modals.js
             }
