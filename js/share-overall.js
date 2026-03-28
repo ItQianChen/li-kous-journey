@@ -8,7 +8,6 @@
  */
 function getOverallStatsForShare() {
     const allDates = new Set();
-    let totalSolved = 0;
     let maxDayCount = 0;
     let maxDayDate = null;
 
@@ -28,7 +27,6 @@ function getOverallStatsForShare() {
             category.problems.forEach(problemNum => {
                 if (isProblemSolved(problemNum)) {
                     roundStats[roundKey].solved++;
-                    totalSolved++;
 
                     const progress = getProblemProgress(problemNum);
                     if (progress && progress.solvedAt) {

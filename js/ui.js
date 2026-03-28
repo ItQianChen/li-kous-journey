@@ -411,23 +411,38 @@ function jumpToCurrentProgress() {
 }
 
 /**
- * 获取所有轮次的总进度统计。
+ * 获取所有轮次的总进度统计（按唯一题号去重）。
  * @returns {{totalSolved: number, totalProblems: number}} - 包含总完成数和总题目数的对象。
  */
 function getOverallStats() {
-    let totalSolved = 0;
-    let totalProblems = 0;
+    const uniqueProblemIds = new Set();
 
     Object.keys(problemsData).forEach(roundKey => {
-        problemsData[roundKey].categories.forEach(category => {
-            totalProblems += category.problems.length;
+        const roundData = problemsData[roundKey];
+        if (!roundData || !Array.isArray(roundData.categories)) {
+            return;
+        }
+
+        roundData.categories.forEach(category => {
+            if (!Array.isArray(category.problems)) {
+                return;
+            }
+
             category.problems.forEach(problemNum => {
-                if (isProblemSolved(problemNum)) {
-                    totalSolved++;
-                }
+                uniqueProblemIds.add(problemNum.toString());
             });
         });
     });
 
-    return { totalSolved, totalProblems };
+    let totalSolved = 0;
+    uniqueProblemIds.forEach(problemId => {
+        if (isProblemSolved(problemId)) {
+            totalSolved++;
+        }
+    });
+
+    return {
+        totalSolved,
+        totalProblems: uniqueProblemIds.size
+    };
 }

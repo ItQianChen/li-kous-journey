@@ -53,10 +53,10 @@ function renderProgressChart() {
 
     const roundData = getRoundProgressData();
 
-    let totalSolved = 0;
-    let totalProblems = 0;
-    roundData.forEach(r => { totalSolved += r.solved; totalProblems += r.total; });
-    const overallPercent = totalProblems > 0 ? Math.round((totalSolved / totalProblems) * 100) : 0;
+    const overallStats = getOverallStats();
+    const overallPercent = overallStats.totalProblems > 0
+        ? Math.round((overallStats.totalSolved / overallStats.totalProblems) * 100)
+        : 0;
 
     const datasets = roundData.map((round, index) => ({
         label: round.name,
