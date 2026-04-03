@@ -309,16 +309,21 @@ function calculateGlobalStreak() {
 }
 
 /**
- * 获取指定日期的打卡题目数
+ * 获取指定日期的打卡题目数（包括首次打卡和复习打卡）
  */
 function getDayProblemCount(dateStr) {
     let count = 0;
     Object.keys(userProgress).forEach(roundKey => {
         if (userProgress[roundKey]) {
             Object.values(userProgress[roundKey]).forEach(progress => {
-                // 使用本地日期比较，避免 UTC 时区偏移问题
+                // 检查首次打卡时间
                 if (progress.solvedAt && getLocalDateString(progress.solvedAt) === dateStr) {
                     count++;
+                } else if (progress.reviewHistory && progress.reviewHistory.length > 0) {
+                    // 只有首次打卡不在今天时，才检查复习记录
+                    if (progress.reviewHistory.some(timestamp => getLocalDateString(timestamp) === dateStr)) {
+                        count++;
+                    }
                 }
             });
         }
@@ -539,6 +544,11 @@ function renderCustomTreeSelect(hierarchy) {
         dropdown.classList.toggle('active');
     };
 
+    // 阻止下拉菜单内部滚动事件冒泡，防止触发外层 modal 滚动
+    dropdown.addEventListener('wheel', (e) => {
+        e.stopPropagation();
+    }, { passive: true });
+
     // 点击外部自动收起面板，绑定在全局 body 级别
     // 为了防止多次绑定需要使用一点小技巧：清理或者放到闭包外，但为了简明起见
     if (!window.hasBindCustomSelectDocClick) {
@@ -700,7 +710,7 @@ function extractRecommendProblems() {
         grid.innerHTML = '<p style="color:#888; text-align: center; width: 100%;">该范围内暂无可复习题目。</p>';
     } else {
         targetList.forEach(item => {
-            const cardWrapper = buildReviewCardHTML(item.id, item.reviewCount, item.solvedAt, item.lastReviewAt, item.reviewHistory);
+            const cardWrapper = buildReviewCardHTML(item.id, item.reviewCount, item.solvedAt, item.lastReviewAt, item.reviewHistory, item.reviewStage);
             if(cardWrapper) grid.appendChild(cardWrapper);
         });
         
@@ -804,6 +814,7 @@ function buildReviewCardHTML(problemNum, reviewCount, solvedAt, lastReviewAt, re
             setTimeout(() => { if (node) node.style.transform = ''; }, 200);
         });
 
+        updateGlobalStats(); // 刷新今日答题统计
         renderReviewContainer();
     };
 

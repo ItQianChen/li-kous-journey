@@ -520,6 +520,7 @@ function generateAllReviewProblemsGrouped() {
                     problems: grp.problems.map(p => ({
                         id: p.problemId,
                         reviewCount: p.reviewCount,
+                        reviewStage: c,  // 当前所处的复习阶段，用于 CSS 颜色匹配
                         solvedAt: p.solvedAt,
                         lastReviewAt: p.lastReviewAt,
                         reviewHistory: p.reviewHistory || []
