@@ -30,7 +30,8 @@ function getOverallStatsForShare() {
 
                     const progress = getProblemProgress(problemNum);
                     if (progress && progress.solvedAt) {
-                        const dateStr = new Date(progress.solvedAt).toISOString().split('T')[0];
+                        // 使用本地日期，避免 UTC 时区偏移问题
+                        const dateStr = getLocalDateString(progress.solvedAt);
                         allDates.add(dateStr);
                     }
                 }
@@ -44,7 +45,8 @@ function getOverallStatsForShare() {
         if (userProgress[roundKey]) {
             Object.values(userProgress[roundKey]).forEach(progress => {
                 if (progress.solvedAt) {
-                    const dateStr = new Date(progress.solvedAt).toISOString().split('T')[0];
+                    // 使用本地日期，避免 UTC 时区偏移问题
+                    const dateStr = getLocalDateString(progress.solvedAt);
                     dateCounts[dateStr] = (dateCounts[dateStr] || 0) + 1;
                 }
             });

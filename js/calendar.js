@@ -81,29 +81,61 @@ function renderCalendar() {
  * @param {string} dateStr - 日期字符串 (YYYY-MM-DD)。
  * @returns {{count: number, problems: Array}} - 包含题目数量和题目详情数组的对象。
  */
-function getDailyActivity(dateStr) {
-    const problemsMap = new Map();
+function getActivityEventsByDate(dateStr) {
+    const events = [];
 
     Object.keys(userProgress).forEach(roundKey => {
-        if (userProgress[roundKey]) {
-            Object.entries(userProgress[roundKey]).forEach(([problemId, progress]) => {
-                if (progress.solvedAt && new Date(progress.solvedAt).toISOString().split('T')[0] === dateStr) {
-                    const problemInfo = allProblems.find(p => p.id.toString() === problemId);
-                    if (problemInfo && !problemsMap.has(problemId)) {
-                        problemsMap.set(problemId, {
-                            id: problemId,
-                            round: roundKey,
-                            difficulty: problemInfo.difficulty,
-                            category: problemInfo.category,
-                            solvedAt: progress.solvedAt
-                        });
-                    }
+        if (!userProgress[roundKey]) return;
+
+        Object.entries(userProgress[roundKey]).forEach(([problemId, progress]) => {
+            const problemInfo = allProblems.find(p => p.id.toString() === problemId);
+            if (!problemInfo) return;
+
+            // 使用本地日期比较，避免 UTC 时区偏移问题
+            if (progress.solvedAt && getLocalDateString(progress.solvedAt) === dateStr) {
+                events.push({
+                    id: problemId,
+                    round: roundKey,
+                    difficulty: problemInfo.difficulty,
+                    category: problemInfo.category,
+                    solvedAt: progress.solvedAt,
+                    eventType: 'solve',
+                    eventAt: progress.solvedAt
+                });
+            }
+
+            const history = Array.isArray(progress.reviewHistory) ? progress.reviewHistory : [];
+            history.forEach((reviewAt, index) => {
+                // 使用本地日期比较，避免 UTC 时区偏移问题
+                if (reviewAt && getLocalDateString(reviewAt) === dateStr) {
+                    events.push({
+                        id: problemId,
+                        round: roundKey,
+                        difficulty: problemInfo.difficulty,
+                        category: problemInfo.category,
+                        solvedAt: progress.solvedAt,
+                        eventType: 'review',
+                        reviewStage: index + 1,
+                        eventAt: reviewAt
+                    });
                 }
             });
-        }
+        });
     });
 
-    return { count: problemsMap.size, problems: Array.from(problemsMap.values()) };
+    return events.sort((a, b) => new Date(a.eventAt) - new Date(b.eventAt));
+}
+
+function getDailyActivity(dateStr) {
+    const events = getActivityEventsByDate(dateStr);
+    const problemsMap = new Map();
+
+    events.forEach(event => {
+        const uniqueKey = `${event.id}-${event.eventType}-${event.reviewStage || 0}-${event.eventAt}`;
+        problemsMap.set(uniqueKey, event);
+    });
+
+    return { count: events.length, problems: Array.from(problemsMap.values()) };
 }
 
 /**
@@ -135,17 +167,18 @@ function nextMonth() {
  * @returns {{problemsByRound: object, totalCount: number}} - 包含按轮次分组的题目和总题目数的对象。
  */
 function getMonthlyActivity() {
-    const problemsMap = new Map();
+    const eventMap = new Map();
 
     const daysInMonth = new Date(calendarCurrentYear, calendarCurrentMonth + 1, 0).getDate();
     for (let day = 1; day <= daysInMonth; day++) {
         const dateStr = `${calendarCurrentYear}-${String(calendarCurrentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         const activity = getDailyActivity(dateStr);
         activity.problems.forEach(problem => {
-            if (!problemsMap.has(problem.id)) {
-                problemsMap.set(problem.id, { ...problem, dates: [dateStr] });
+            const uniqueKey = `${problem.id}-${problem.eventType}-${problem.reviewStage || 0}-${problem.eventAt}`;
+            if (!eventMap.has(uniqueKey)) {
+                eventMap.set(uniqueKey, { ...problem, dates: [dateStr] });
             } else {
-                problemsMap.get(problem.id).dates.push(dateStr);
+                eventMap.get(uniqueKey).dates.push(dateStr);
             }
         });
     }
@@ -154,14 +187,14 @@ function getMonthlyActivity() {
         result[roundKey] = [];
         return result;
     }, {});
-    problemsMap.forEach(problem => {
+    eventMap.forEach(problem => {
         if (!problemsByRound[problem.round]) {
             problemsByRound[problem.round] = [];
         }
         problemsByRound[problem.round].push(problem);
     });
 
-    return { problemsByRound, totalCount: problemsMap.size };
+    return { problemsByRound, totalCount: eventMap.size };
 }
 
 /**

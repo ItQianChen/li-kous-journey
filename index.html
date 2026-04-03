@@ -134,6 +134,12 @@
             <button class="round-btn" data-round-key="round7" onclick="selectRound(7)">面试经典150</button>
         </div>
 
+        <!-- 悬浮智能复习入口 (靠边自动隐藏) -->
+        <div id="floatingReviewBtn" class="floating-btn docked docked-left" style="display: none;">
+            <div class="floating-icon">🔄</div>
+            <div class="floating-text">复习</div>
+        </div>
+
         <!-- 题目分类面板 -->
         <div id="categoriesContainer" class="categories-container">
             <!-- 动态生成 -->
@@ -409,6 +415,76 @@
                             <span class="heatmap-label">多</span>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 智能复习弹窗 -->
+        <div class="modal" id="reviewModal">
+            <div class="modal-content review-modal-content" style="max-width: 800px; max-height: 90vh; display: flex; flex-direction: column;">
+                <div class="modal-header">
+                    <h2 class="review-title" style="margin: 0; display: flex; align-items: center; gap: 0.5rem; color: #F57F17;">
+                        <span>🔄 智能复习面板</span>
+                        <span style="font-size: 0.8rem; color: #888; font-weight: normal;">(基于打卡时效动态分析)</span>
+                    </h2>
+                    <button onclick="closeReviewModal()" class="modal-close">✕</button>
+                </div>
+                <div class="modal-body" style="padding: 1.5rem 2rem; overflow-y: auto;">
+                    
+                    <details class="main-collapsible" id="recommendDetails">
+                        <summary class="main-collapsible-summary">
+                            <h3 style="color: #d84315; margin-bottom: 1rem; border-bottom: 2px solid #ffcc80; padding-bottom: 0.5rem; display: flex; align-items: center; gap: 8px;">
+                                <span>▶</span> 🔥 抽取推荐复习区 <span style="font-size:0.8rem; color:#888; font-weight: normal;">(点击展开/收起)</span>
+                            </h3>
+                        </summary>
+                        <div style="padding-top: 0.5rem;">
+                            <!-- 抽题控制区 -->
+                            <div class="review-controls" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; background: #fff8e1; padding: 1rem; border-radius: 8px;">
+                                <div style="display: flex; align-items: center; gap: 10px; position: relative;">
+                                    <label style="color: #f57c00; font-weight: bold;">抽取来源：</label>
+                                    
+                                    <!-- 自定义树状选择器 -->
+                                    <div class="custom-tree-select" id="customTreeSelectWrapper">
+                                        <div class="tree-select-trigger" id="customTreeSelectTrigger">
+                                            <span id="customTreeSelectLabel" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px;">🌐 全局 (跨所有阶梯范围)</span>
+                                            <span class="tree-trigger-icon" style="font-size: 0.8rem; color: #888; transition: transform 0.2s;">▼</span>
+                                        </div>
+                                        <input type="hidden" id="reviewSourceSelect" value="all" />
+                                        
+                                        <div class="tree-select-dropdown" id="customTreeSelectDropdown">
+                                            <!-- JS 动态注入 -->
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 10px;">
+                                    <button id="clearRecommendBtn" class="btn-clear-review" style="display: none; padding: 6px 12px; border-radius: 6px; border: 1px solid #ccc; background: #f5f5f5; cursor: pointer; transition: 0.2s;" onclick="clearRecommendReview()">清空</button>
+                                    <button class="btn-generate-review" onclick="extractRecommendProblems()">
+                                        🎯 抽取 5 题
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- 推荐卡片呈现区 -->
+                            <div id="recommendReviewSection" style="display: none; margin-bottom: 1rem;">
+                                <div id="recommendReviewGrid" class="review-problems-grid">
+                                    <!-- 动态生成 -->
+                                </div>
+                            </div>
+                        </div>
+                    </details>
+
+                    <details class="main-collapsible" id="allReviewDetails">
+                        <summary class="main-collapsible-summary">
+                            <h3 style="color: #555; margin-bottom: 1rem; border-bottom: 1px solid #eee; padding-bottom: 0.5rem; display: flex; align-items: center; gap: 8px;">
+                                <span>▶</span> 📚 全部待复习题库总览 <span style="font-size:0.8rem; color:#888; font-weight: normal;">(点击展开/收起)</span>
+                            </h3>
+                        </summary>
+                        <div id="allReviewsSection" style="padding-top: 0.5rem;">
+                            <div id="allReviewsContainer">
+                                <!-- 折叠面板动态生成 -->
+                            </div>
+                        </div>
+                    </details>
                 </div>
             </div>
         </div>

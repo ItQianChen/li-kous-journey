@@ -41,8 +41,9 @@ function showCustomRange() {
     const startDate = new Date(today);
     startDate.setDate(startDate.getDate() - 30);
 
-    document.getElementById('trendStartDate').value = startDate.toISOString().split('T')[0];
-    document.getElementById('trendEndDate').value = today.toISOString().split('T')[0];
+    // 使用本地日期格式化，避免 UTC 时区偏移问题
+    document.getElementById('trendStartDate').value = getLocalDateString(startDate);
+    document.getElementById('trendEndDate').value = getLocalDateString(today);
 
     trendStartDate = startDate;
     trendEndDate = today;
@@ -93,18 +94,10 @@ function getTrendData() {
     const currentDate = new Date(startDate);
 
     while (currentDate <= endDate) {
-        const dateStr = currentDate.toISOString().split('T')[0];
+        // 使用本地日期格式化，避免 UTC 时区偏移问题
+        const dateStr = getLocalDateString(currentDate);
 
-        let count = 0;
-        Object.keys(userProgress).forEach(roundKey => {
-            if (userProgress[roundKey]) {
-                Object.values(userProgress[roundKey]).forEach(progress => {
-                    if (progress.solvedAt && new Date(progress.solvedAt).toISOString().split('T')[0] === dateStr) {
-                        count++;
-                    }
-                });
-            }
-        });
+        const count = getActivityEventsByDate(dateStr).length;
 
         // 根据日期范围选择不同的标签格式
         const daysDiff = Math.round((endDate - startDate) / (1000 * 60 * 60 * 24));

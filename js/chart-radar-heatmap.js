@@ -97,14 +97,24 @@ function getYearHeatmapData() {
 
     // 收集所有日期的数据
     Object.keys(userProgress).forEach(roundKey => {
-        if (userProgress[roundKey]) {
-            Object.values(userProgress[roundKey]).forEach(progress => {
-                if (progress.solvedAt) {
-                    const dateStr = new Date(progress.solvedAt).toISOString().split('T')[0];
+        if (!userProgress[roundKey]) return;
+
+        Object.values(userProgress[roundKey]).forEach(progress => {
+            if (progress.solvedAt) {
+                // 使用本地日期，避免 UTC 时区偏移问题
+                const dateStr = getLocalDateString(progress.solvedAt);
+                data[dateStr] = (data[dateStr] || 0) + 1;
+            }
+
+            const history = Array.isArray(progress.reviewHistory) ? progress.reviewHistory : [];
+            history.forEach(reviewAt => {
+                if (reviewAt) {
+                    // 使用本地日期，避免 UTC 时区偏移问题
+                    const dateStr = getLocalDateString(reviewAt);
                     data[dateStr] = (data[dateStr] || 0) + 1;
                 }
             });
-        }
+        });
     });
 
     return data;
@@ -158,7 +168,8 @@ function renderHeatmapChart() {
             weekHtml = '';
         }
 
-        const dateStr = currentDate.toISOString().split('T')[0];
+        // 使用本地日期格式化，避免 UTC 时区偏移问题
+        const dateStr = getLocalDateString(currentDate);
         const count = heatmapData[dateStr] || 0;
         const level = getHeatmapLevel(count);
         const isFuture = currentDate > today;

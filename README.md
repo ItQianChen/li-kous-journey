@@ -4,7 +4,7 @@
 
 ## 项目简介
 
-[`力扣征途`](README.md) 是一个无需后端、开箱即用的本地刷题进度管理项目。它通过预置题库、轮次划分、打卡记录、图表分析和分享卡片，把“刷题”这件事从零散行为变成可持续的训练流程。
+[`力扣征途`](README.md) 是一个无需后端、开箱即用的本地刷题进度管理项目。它通过预置题库、轮次划分、打卡记录、图表分析和分享卡片，把"刷题"这件事从零散行为变成可持续的训练流程。
 
 项目当前采用浏览器原生脚本组织方式：
 - 页面结构由 [`index.html`](index.html) 提供
@@ -30,7 +30,6 @@
 - 页面会自动恢复最近浏览的轮次与分类，见 [`loadUserViewState()`](js/data.js:62)
 
 ### 2. 七轮题库组织
-当前项目已经不是旧版 README 中写的“四轮”，而是 **七轮结构**，这点以前文档写错了，现在已修正。
 
 轮次来源见 [`problemsData`](js/data.js:197)：
 - `round1`：简单题，通过率 ≥ 50%
@@ -69,9 +68,9 @@
 ### 7. 图表可视化
 图表入口见 [`showChartModal()`](js/chart.js:18)，当前包含：
 - 轮次进度环图 [`renderProgressChart()`](js/chart-progress.js:49)
-- 趋势折线图 [`renderTrendChart()`](js/chart-trend.js:135)
+- 趋势折线图 [`renderTrendChart()`](js/chart-trend.js:126)
 - 分类雷达图 [`renderRadarChart()`](js/chart-radar-heatmap.js:34)
-- 年度热力图 [`renderHeatmapChart()`](js/chart-radar-heatmap.js:116)
+- 年度热力图 [`renderHeatmapChart()`](js/chart-radar-heatmap.js:124)
 
 ### 8. 分享卡片
 - 当日 / 本月分享逻辑位于 [`js/share-card.js`](js/share-card.js)
@@ -80,7 +79,7 @@
 
 ## 最近一次结构整理
 
-这次代码整理的重点不是“把文件切碎”，而是把已经变胖的职责拆开。
+这次代码整理的重点不是"把文件切碎"，而是把已经变胖的职责拆开。
 
 ### 已完成的 JS 拆分
 原本职责过多的两个文件已经按功能拆分：
@@ -128,35 +127,36 @@
 
 ```text
 liko/
-├── index.html
-├── script.js
-├── README.md
-├── problems-data.json
-├── hot100-data.json
-├── interview150-data.json
+├── index.html              # 主页面结构
+├── script.js               # 全局状态初始化
+├── README.md               # 项目文档
+├── LICENSE                 # MIT 许可证
+├── problems-data.json      # 基础题库数据
+├── hot100-data.json        # Hot100 题库数据
+├── interview150-data.json  # 面试经典150题库数据
 ├── css/
-│   ├── base.css
-│   ├── login.css
-│   ├── main.css
-│   ├── modals.css
-│   ├── calendar.css
-│   ├── search.css
-│   └── responsive.css
+│   ├── base.css            # 基础样式重置
+│   ├── login.css           # 登录界面样式
+│   ├── main.css            # 主界面样式
+│   ├── modals.css          # 弹窗样式
+│   ├── calendar.css        # 日历样式
+│   ├── search.css          # 搜索样式
+│   └── responsive.css      # 响应式适配
 └── js/
-    ├── auth.js
-    ├── data.js
-    ├── ui.js
-    ├── calendar.js
-    ├── calendar-detail.js
-    ├── share-card.js
-    ├── share-overall.js
-    ├── chart.js
-    ├── chart-progress.js
-    ├── chart-trend.js
-    ├── chart-radar-heatmap.js
-    ├── search.js
-    ├── modals.js
-    └── utils.js
+    ├── auth.js             # 用户认证
+    ├── data.js             # 数据加载与持久化
+    ├── ui.js               # 主界面交互
+    ├── calendar.js         # 日历核心逻辑
+    ├── calendar-detail.js  # 日历详情视图
+    ├── share-card.js       # 分享卡片生成
+    ├── share-overall.js    # 全局分享统计
+    ├── chart.js            # 图表主控
+    ├── chart-progress.js   # 进度环图
+    ├── chart-trend.js      # 趋势折线图
+    ├── chart-radar-heatmap.js  # 雷达图与热力图
+    ├── search.js           # 搜索功能
+    ├── modals.js           # 弹窗管理
+    └── utils.js            # 通用工具函数
 ```
 
 ## 文件职责说明
@@ -175,7 +175,7 @@ liko/
 - [`js/ui.js`](js/ui.js)：轮次切换、分类渲染、题目渲染、主统计更新
 - [`js/search.js`](js/search.js)：搜索、定位、跳转
 - [`js/modals.js`](js/modals.js)：技巧弹窗、数据弹窗、分类选择弹窗等
-- [`js/utils.js`](js/utils.js)：复制题号、折叠 section 等通用辅助函数
+- [`js/utils.js`](js/utils.js)：复制题号、折叠 section、本地日期格式化等通用辅助函数
 
 ### 日历与分享
 - [`js/calendar.js`](js/calendar.js)：日历核心
@@ -206,7 +206,12 @@ liko/
   "round1": {
     "1": {
       "solvedAt": "2025-10-28T08:00:00.000Z",
-      "round": "round1"
+      "round": "round1",
+      "reviewCount": 2,
+      "reviewHistory": [
+        "2025-11-01T10:00:00.000Z",
+        "2025-11-15T09:00:00.000Z"
+      ]
     }
   },
   "round2": {},
@@ -250,13 +255,13 @@ liko/
 
 ### 值得继续做的
 - 抽取轮次名称、颜色等共享常量，避免在多个文件重复定义
-- 继续拆分 [`js/data.js`](js/data.js)，把“题库加载”和“进度存储”进一步分离
+- 继续拆分 [`js/data.js`](js/data.js)，把"题库加载"和"进度存储"进一步分离
 - 为 README 增加截图或演示 GIF
 - 增加静态服务启动说明
 
 ### 暂时别瞎折腾的
 - 不要急着一口气改成完整模块化框架
-- 不要为了“现代化”把简单静态项目变成复杂构建工程
+- 不要为了"现代化"把简单静态项目变成复杂构建工程
 - 不要随意改动全局函数名，否则会直接破坏 [`index.html`](index.html) 中的事件绑定
 
 ## 使用建议
@@ -269,6 +274,6 @@ liko/
 
 ## 结语
 
-[`力扣征途`](README.md) 现在已经不只是一个“能打卡”的页面，而是一个有训练路径、有历史回顾、有统计反馈的静态刷题工具。
+[`力扣征途`](README.md) 现在已经不只是一个"能打卡"的页面，而是一个有训练路径、有历史回顾、有统计反馈的静态刷题工具。
 
 这类项目最重要的不是技术花哨，而是结构别烂、文档别假、功能别互相踩。当前 README 已按现有代码结构更新，可作为后续维护的基准文档。

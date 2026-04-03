@@ -17,6 +17,7 @@ function selectRound(round, categoryName = null) {
     });
 
     renderCategories(categoryName);
+    renderReviewContainer(); // 渲染本轮的复习功能区
     saveCurrentViewState(); // 依赖 data.js
     updateStats();
     updateGlobalStats();
@@ -147,7 +148,7 @@ function renderProblems() {
             item.appendChild(dateBadge);
         }
 
-        if (problemInfo.url) {
+        if (problemInfo.url)                              {
             const linkBtn = document.createElement('button');
             linkBtn.className = 'link-btn';
             linkBtn.innerHTML = '🔗';
@@ -315,7 +316,8 @@ function getDayProblemCount(dateStr) {
     Object.keys(userProgress).forEach(roundKey => {
         if (userProgress[roundKey]) {
             Object.values(userProgress[roundKey]).forEach(progress => {
-                if (progress.solvedAt && new Date(progress.solvedAt).toISOString().split('T')[0] === dateStr) {
+                // 使用本地日期比较，避免 UTC 时区偏移问题
+                if (progress.solvedAt && getLocalDateString(progress.solvedAt) === dateStr) {
                     count++;
                 }
             });
@@ -328,7 +330,8 @@ function getDayProblemCount(dateStr) {
  * 获取今日答题数量
  */
 function getTodayProblemCount() {
-    const today = new Date().toISOString().split('T')[0];
+    // 使用本地日期，避免 UTC 时区偏移问题
+    const today = getLocalDateString(new Date());
     return getDayProblemCount(today);
 }
 
@@ -446,3 +449,483 @@ function getOverallStats() {
         totalProblems: uniqueProblemIds.size
     };
 }
+
+/**
+ * 刷新悬浮复习入口的显示状态
+ */
+function renderReviewContainer() {
+    const btn = document.getElementById('floatingReviewBtn');
+    if (!btn) return;
+    
+    const roundKey = `round${currentRound}`;
+    
+    // 如果本轮有任何已完成的题目，才显示复习入口 (跨轮验证)
+    const testList = generateReviewProblems(roundKey, 1);
+    if (testList.length > 0) {
+        btn.style.display = 'flex';
+    } else {
+        btn.style.display = 'none';
+        closeReviewModal();
+    }
+}
+
+/**
+ * 渲染自定义树状下拉框
+ */
+function renderCustomTreeSelect(hierarchy) {
+    const trigger = document.getElementById('customTreeSelectTrigger');
+    const label = document.getElementById('customTreeSelectLabel');
+    const input = document.getElementById('reviewSourceSelect');
+    const dropdown = document.getElementById('customTreeSelectDropdown');
+    const wrapper = document.getElementById('customTreeSelectWrapper');
+    
+    if (!trigger || !dropdown) return;
+    
+    // 清空重构下拉结构
+    dropdown.innerHTML = '';
+    
+    // 助手函数：选中逻辑
+    const handleSelect = (val, text) => {
+        input.value = val;
+        label.textContent = text;
+        dropdown.classList.remove('active');
+    };
+
+    // 全局盲抽选项
+    const allOpt = document.createElement('div');
+    allOpt.className = 'tree-option';
+    allOpt.style.fontWeight = 'bold';
+    allOpt.textContent = '🌐 全局 (跨所有阶梯范围)';
+    allOpt.onclick = () => handleSelect('all', '🌐 全局 (跨所有阶梯范围)');
+    dropdown.appendChild(allOpt);
+
+    hierarchy.forEach(stage => {
+        const groupLabel = document.createElement('div');
+        groupLabel.className = 'tree-optgroup-label';
+        // 加上一个小倒三角
+        groupLabel.innerHTML = `<span>📈 ${stage.name}</span><span style="font-size:0.7rem; color:#e65100; transition: transform 0.2s;">▼</span>`;
+        
+        const groupContent = document.createElement('div');
+        groupContent.className = 'tree-optgroup-content';
+        
+        groupLabel.onclick = (e) => {
+            e.stopPropagation();
+            groupContent.classList.toggle('active');
+            const icon = groupLabel.querySelector('span:last-child');
+            icon.style.transform = groupContent.classList.contains('active') ? 'rotate(180deg)' : 'rotate(0)';
+        };
+        
+        const stageAllOpt = document.createElement('div');
+        stageAllOpt.className = 'tree-option';
+        stageAllOpt.textContent = `🌐 ${stage.name} (全局)`;
+        stageAllOpt.onclick = () => handleSelect(`${stage.stageKey}-all`, `🌐 ${stage.name} (全局)`);
+        groupContent.appendChild(stageAllOpt);
+
+        stage.roundGroups.forEach(rg => {
+            const opt = document.createElement('div');
+            opt.className = 'tree-option';
+            opt.textContent = `📁 ${rg.name}`;
+            opt.onclick = () => handleSelect(`${stage.stageKey}-${rg.roundKey}`, `📁 ${rg.name}`);
+            groupContent.appendChild(opt);
+        });
+        
+        dropdown.appendChild(groupLabel);
+        dropdown.appendChild(groupContent);
+    });
+
+    // 绑定主触发按钮点击事件（只绑一次，防止多重触发）
+    trigger.onclick = (e) => {
+        e.stopPropagation();
+        dropdown.classList.toggle('active');
+    };
+
+    // 点击外部自动收起面板，绑定在全局 body 级别
+    // 为了防止多次绑定需要使用一点小技巧：清理或者放到闭包外，但为了简明起见
+    if (!window.hasBindCustomSelectDocClick) {
+        document.addEventListener('click', (e) => {
+            const dd = document.getElementById('customTreeSelectDropdown');
+            const wrap = document.getElementById('customTreeSelectWrapper');
+            if (dd && wrap && !wrap.contains(e.target)) {
+                dd.classList.remove('active');
+            }
+        });
+        window.hasBindCustomSelectDocClick = true;
+    }
+
+    // 默认回显状态
+    if (hierarchy.length > 0) {
+        handleSelect(`${hierarchy[0].stageKey}-all`, `🌐 ${hierarchy[0].name} (全局)`);
+    } else {
+        handleSelect('all', '🌐 全局 (跨所有阶梯范围)');
+    }
+}
+
+/**
+ * 打开复习弹窗
+ */
+function openReviewModal() {
+    const modal = document.getElementById('reviewModal');
+    if(!modal) return;
+    
+    modal.style.display = 'flex';
+    
+    // 获取层级嵌套题库数据
+    const hierarchy = generateAllReviewProblemsGrouped(); // 依赖 data.js
+    
+    // 渲染手写的自定义树状选择器替代原生 Select
+    renderCustomTreeSelect(hierarchy);
+    
+    // 渲染嵌套层级折叠面板
+    renderAllReviewGroups(hierarchy);
+    
+    // 默认隐去推荐区
+    document.getElementById('recommendReviewSection').style.display = 'none';
+    document.getElementById('clearRecommendBtn').style.display = 'none';
+}
+
+/**
+ * 关闭复习弹窗
+ */
+function closeReviewModal() {
+    const modal = document.getElementById('reviewModal');
+    if(modal) modal.style.display = 'none';
+}
+
+/**
+ * 渲染所有的待复习按照分类折叠面板
+ */
+function renderAllReviewGroups(hierarchy) {
+    const container = document.getElementById('allReviewsContainer');
+    container.innerHTML = '';
+
+    if (!hierarchy || hierarchy.length === 0) {
+        container.innerHTML = '<p style="color:#888; padding: 1rem;">暂无待复习题目，快去题库打卡吧！</p>';
+        return;
+    }
+
+    const createReviewCardWrapper = (item, stage) => {
+        const cardWrapper = buildReviewCardHTML(
+            item.id,
+            item.reviewCount,
+            item.solvedAt,
+            item.lastReviewAt,
+            item.reviewHistory,
+            stage
+        );
+        return cardWrapper;
+    };
+
+    const createGroupElement = (group, icon, isExpanded, stage) => {
+        const groupDiv = document.createElement('div');
+        groupDiv.className = isExpanded ? 'review-group expanded' : 'review-group';
+
+        const header = document.createElement('div');
+        header.className = 'review-group-header';
+        header.onclick = () => groupDiv.classList.toggle('expanded');
+
+        header.innerHTML = `
+            <div class="review-group-title">
+                <span>${icon} ${group.name}</span>
+                <span class="review-group-badge">${group.problems.length} 题</span>
+            </div>
+            <div class="review-group-icon">▼</div>
+        `;
+
+        const content = document.createElement('div');
+        content.className = 'review-group-content review-problems-grid';
+
+        group.problems.forEach(item => {
+            const cardWrapper = createReviewCardWrapper(item, stage);
+            if (cardWrapper) content.appendChild(cardWrapper);
+        });
+
+        groupDiv.appendChild(header);
+        groupDiv.appendChild(content);
+        return groupDiv;
+    };
+
+    hierarchy.forEach(stage => {
+        const stageWrapper = document.createElement('div');
+        stageWrapper.className = 'stage-wrapper';
+        stageWrapper.style.marginBottom = '1.5rem';
+
+        const stageLabel = document.createElement('div');
+        stageLabel.style.cssText = "color: #e65100; margin-bottom: 0.8rem; font-size: 1.05rem; font-weight: bold; padding: 0.6rem 0.8rem; border-left: 4px solid #ff9800; background: #fff8e1; border-radius: 6px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none;";
+
+        const totalProbs = stage.roundGroups.reduce((sum, rg) => sum + rg.problems.length, 0);
+
+        stageLabel.innerHTML = `
+            <span>📈 ${stage.name} <span style="font-size: 0.85rem; color: #d84315; font-weight: normal; margin-left: 0.5rem;">(共 ${totalProbs} 题)</span></span>
+            <span class="stage-icon" style="transition: transform 0.3s; font-size: 0.8rem; color: #e65100;">▼</span>
+        `;
+
+        const contentDiv = document.createElement('div');
+        let isExpanded = false;
+        contentDiv.style.display = isExpanded ? 'block' : 'none';
+        if (!isExpanded) {
+            stageLabel.querySelector('.stage-icon').style.transform = 'rotate(-90deg)';
+        }
+
+        stageLabel.onclick = () => {
+            isExpanded = !isExpanded;
+            contentDiv.style.display = isExpanded ? 'block' : 'none';
+            stageLabel.querySelector('.stage-icon').style.transform = isExpanded ? 'rotate(0deg)' : 'rotate(-90deg)';
+        };
+
+        stageWrapper.appendChild(stageLabel);
+
+        stage.roundGroups.forEach(rg => {
+            contentDiv.appendChild(createGroupElement(rg, '📁', false, stage.stage));
+        });
+
+        stageWrapper.appendChild(contentDiv);
+        container.appendChild(stageWrapper);
+    });
+}
+
+/**
+ * 抽取推荐复习题目
+ */
+function extractRecommendProblems() {
+    const select = document.getElementById('reviewSourceSelect');
+    const source = select.value;
+    const grid = document.getElementById('recommendReviewGrid');
+    
+    grid.innerHTML = '';
+    
+    // 全靠 data.js 里的坚实后盾，再也不要在 UI 里手写全局跨度遍历、去重、排序脏活了
+    const targetList = generateReviewProblems(source, 5);
+    
+    if (targetList.length === 0) {
+        grid.innerHTML = '<p style="color:#888; text-align: center; width: 100%;">该范围内暂无可复习题目。</p>';
+    } else {
+        targetList.forEach(item => {
+            const cardWrapper = buildReviewCardHTML(item.id, item.reviewCount, item.solvedAt, item.lastReviewAt, item.reviewHistory);
+            if(cardWrapper) grid.appendChild(cardWrapper);
+        });
+        
+        // 抽取成功后，自动展开推荐区的 details 大折叠板以引人注意
+        const recommendDetails = document.getElementById('recommendDetails');
+        if (recommendDetails) {
+            recommendDetails.setAttribute('open', '');
+        }
+    }
+    
+    document.getElementById('recommendReviewSection').style.display = 'block';
+    document.getElementById('clearRecommendBtn').style.display = 'block';
+}
+
+/**
+ * 清除推荐抽取区
+ */
+function clearRecommendReview() {
+    document.getElementById('recommendReviewSection').style.display = 'none';
+    document.getElementById('clearRecommendBtn').style.display = 'none';
+    document.getElementById('recommendReviewGrid').innerHTML = '';
+}
+
+/**
+ * 创建单一的复习卡片DOM片段
+ */
+function buildReviewCardHTML(problemNum, reviewCount, solvedAt, lastReviewAt, reviewHistory, reviewStage) {
+    const problemInfo = allProblems.find(p => p.id.toString() === problemNum.toString());
+    if (!problemInfo) return null;
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'review-problems-wrap';
+
+    const history = Array.isArray(reviewHistory) ? reviewHistory : [];
+    const isReviewedToday = reviewCount > reviewStage
+        && history[reviewStage]
+        && new Date(history[reviewStage]).toDateString() === new Date().toDateString();
+
+    const card = document.createElement('div');
+    card.className = `review-problem-item review-card-target ${isReviewedToday ? 'reviewed' : ''}`;
+    card.dataset.problemId = problemNum;
+    card.dataset.reviewStage = String(reviewStage);
+    card.title = isReviewedToday ? "✅ 今日已完成本次复盘" : "做完这道题了吗？点击标记为已复盘！";
+    
+    // 构建 badge 文本：
+    // reviewCount = 0 => 首刷日期
+    // reviewCount >= 1 => 显示上一轮复习时间（从 reviewHistory 里取最后一条）
+    let badgeText = `复习过 ${reviewCount} 次`;
+    if (reviewCount === 0 && solvedAt) {
+        const d = new Date(solvedAt);
+        badgeText = `首刷于 ${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    } else if (reviewCount >= 1) {
+        // 当前阶段卡片展示“上一轮完成时间”，而不是最后一次复习时间
+        const previousStageTime = history[reviewCount - 1] || lastReviewAt;
+        if (previousStageTime) {
+            const d = new Date(previousStageTime);
+            badgeText = `第${reviewCount}轮复习于 ${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        }
+    }
+    
+    card.innerHTML = `
+        <div class="review-count-badge">${badgeText}</div>
+        <div class="problem-content">
+            <div class="problem-number">${problemNum}</div>
+            <div class="problem-title">${problemInfo.title}</div>
+        </div>
+    `;
+    
+    card.onclick = (e) => {
+        e.stopPropagation();
+        if (card.classList.contains('reviewed')) return;
+
+        markProblemReviewed(null, problemNum); // 数据落库
+
+        const progress = getProblemProgress(problemNum);
+        if (!progress) return;
+
+        const newCount = progress.reviewCount || (reviewCount + 1);
+        const reviewTime = progress.lastReviewAt || new Date().toISOString();
+        const reviewDate = new Date(reviewTime);
+        const todayStr = `${reviewDate.getFullYear()}-${String(reviewDate.getMonth() + 1).padStart(2,'0')}-${String(reviewDate.getDate()).padStart(2,'0')}`;
+
+        card.classList.add('reviewed');
+        card.dataset.reviewStage = String(reviewStage);
+        card.title = "✅ 已完成本次复盘";
+        const currentBadge = card.querySelector('.review-count-badge');
+        if (currentBadge) currentBadge.textContent = `第${newCount}轮复习于 ${todayStr}`;
+        card.style.transform = 'scale(1.1)';
+        setTimeout(() => { if (card) card.style.transform = ''; }, 200);
+
+        // 【核心体验】同步更新推荐区等其他同题卡片，但不覆盖当前卡片的即时视觉反馈
+        document.querySelectorAll(`.review-card-target[data-problem-id="${problemNum}"]`).forEach(node => {
+            if (node === card) return;
+            if (node.dataset.reviewStage !== String(reviewStage)) return;
+            node.classList.add('reviewed');
+            node.dataset.reviewStage = String(reviewStage);
+            node.title = "✅ 已完成本次复盘";
+            const badge = node.querySelector('.review-count-badge');
+            if (badge) badge.textContent = `第${newCount}轮复习于 ${todayStr}`;
+            node.style.transform = 'scale(1.1)';
+            setTimeout(() => { if (node) node.style.transform = ''; }, 200);
+        });
+
+        renderReviewContainer();
+    };
+
+    if (problemInfo.url) {
+        const linkBtn = document.createElement('button');
+        linkBtn.className = 'link-btn';
+        linkBtn.innerHTML = '🔗';
+        linkBtn.title = '跳转到题目页面';
+        linkBtn.onclick = (e) => {
+            e.stopPropagation();
+            window.open(problemInfo.url, '_blank');
+        };
+        // 还原回挂载至拥有 position: relative 的 wrapper，防止被 overflow: hidden 裁剪，且 CSS 已修复 hover 支持
+        wrapper.appendChild(linkBtn);
+    }
+    
+    wrapper.appendChild(card);
+    return wrapper;
+}
+
+/**
+ * 初始化悬浮按钮拖拽逻辑
+ */
+function initFloatingReviewBtn() {
+    const btn = document.getElementById('floatingReviewBtn');
+    if(!btn) return;
+    
+    let isDragging = false;
+    let startX, startY, initialX, initialY;
+    
+    btn.addEventListener('mousedown', dragStart);
+    btn.addEventListener('touchstart', dragStart, {passive: false});
+
+    function dragStart(e) {
+        if(e.type === "touchstart") {
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+        } else {
+            startX = e.clientX;
+            startY = e.clientY;
+        }
+        
+        // 获取实际的 left/top 值，防止 left == 'auto' 导致的问题
+        const rect = btn.getBoundingClientRect();
+        initialX = rect.left;
+        initialY = rect.top;
+        
+        btn.style.transition = 'none';
+        btn.classList.remove('docked', 'docked-left', 'docked-right');
+        
+        document.addEventListener('mousemove', drag);
+        document.addEventListener('touchmove', drag, {passive: false});
+        document.addEventListener('mouseup', dragEnd);
+        document.addEventListener('touchend', dragEnd);
+        
+        btn.setAttribute('data-moved', 'false');
+    }
+
+    function drag(e) {
+        let currentX = e.type === "touchmove" ? e.touches[0].clientX : e.clientX;
+        let currentY = e.type === "touchmove" ? e.touches[0].clientY : e.clientY;
+        
+        let dx = currentX - startX;
+        let dy = currentY - startY;
+        
+        if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+            btn.setAttribute('data-moved', 'true');
+            isDragging = true;
+        }
+        
+        let newX = initialX + dx;
+        let newY = initialY + dy;
+        
+        newX = Math.max(0, Math.min(newX, window.innerWidth - btn.offsetWidth));
+        newY = Math.max(0, Math.min(newY, window.innerHeight - btn.offsetHeight));
+        
+        btn.style.left = newX + 'px';
+        btn.style.top = newY + 'px';
+    }
+
+    function dragEnd(e) {
+        document.removeEventListener('mousemove', drag);
+        document.removeEventListener('touchmove', drag);
+        document.removeEventListener('mouseup', dragEnd);
+        document.removeEventListener('touchend', dragEnd);
+        
+        btn.style.transition = 'left 0.3s ease, top 0.3s ease, transform 0.3s ease, opacity 0.3s ease';
+        
+        setTimeout(() => {
+            const rect = btn.getBoundingClientRect();
+            let currentX = rect.left + (btn.offsetWidth / 2);
+            let centerX = window.innerWidth / 2;
+            
+            if (currentX < centerX) {
+                btn.style.left = '0px';
+                btn.classList.add('docked-left');
+            } else {
+                btn.style.left = (window.innerWidth - btn.offsetWidth) + 'px';
+                btn.classList.add('docked-right');
+            }
+            btn.classList.add('docked');
+        }, 50);
+        
+        setTimeout(() => {
+            isDragging = false;
+        }, 100);
+    }
+    
+    btn.addEventListener('click', (e) => {
+        if (btn.getAttribute('data-moved') === 'true' || isDragging) {
+            e.preventDefault();
+            btn.setAttribute('data-moved', 'false'); // reset
+            return;
+        }
+        openReviewModal();
+    });
+
+    window.addEventListener('resize', () => {
+        if (btn.classList.contains('docked-right')) {
+            btn.style.left = (window.innerWidth - btn.offsetWidth) + 'px';
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', initFloatingReviewBtn);

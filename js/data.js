@@ -343,3 +343,198 @@ function handleImport(event) {
 
     event.target.value = ''; // 重置文件选择器
 }
+
+/**
+ * 智能复习: 基于已完成题目，按照最后一次复习时间(或首次打卡时间)升序排列，抽取最老的N道题
+ * @param {string} source - 要抽取复习题的来源 (如 'all', 'stage-0-all', 'stage-0-round6')
+ * @param {number} count - 要抽取的题目数量，默认5题
+ * @returns {Array} - 抽取的题目对象数组
+ */
+function generateReviewProblems(source, count = 5) {
+    if (!source) return [];
+    
+    const hierarchy = generateAllReviewProblemsGrouped();
+    let flatAll = [];
+    
+    // 助手函数：按时间戳从小到大排序
+    const sortProblems = (arr) => {
+        arr.sort((a, b) => {
+            const ta = a.lastReviewAt ? new Date(a.lastReviewAt).getTime() : new Date(a.solvedAt).getTime();
+            const tb = b.lastReviewAt ? new Date(b.lastReviewAt).getTime() : new Date(b.solvedAt).getTime();
+            return ta - tb;
+        });
+    };
+
+    if (source === 'all') {
+        const seen = new Set();
+        hierarchy.forEach(stage => {
+            stage.roundGroups.forEach(rg => {
+                rg.problems.forEach(p => {
+                    if (!seen.has(p.id)) {
+                        seen.add(p.id);
+                        flatAll.push(p);
+                    }
+                });
+            });
+        });
+        sortProblems(flatAll);
+        return flatAll.slice(0, count);
+    }
+    
+    if (source.startsWith('stage-')) {
+        const parts = source.split('-'); // ["stage", "0", "all" | "roundY"]
+        const stageNumStr = parts[1];
+        const subsource = parts.slice(2).join('-'); // 'all' or 'round1'
+        
+        const targetStage = hierarchy.find(s => s.stageKey === `stage-${stageNumStr}`);
+        if (!targetStage) return [];
+        
+        if (subsource === 'all') {
+            const seen = new Set();
+            targetStage.roundGroups.forEach(rg => {
+                rg.problems.forEach(p => {
+                    if (!seen.has(p.id)) {
+                        seen.add(p.id);
+                        flatAll.push(p);
+                    }
+                });
+            });
+            sortProblems(flatAll);
+            return flatAll.slice(0, count);
+        } else {
+            const trg = targetStage.roundGroups.find(rg => rg.roundKey === subsource);
+            if (trg) {
+                // 原题库内的问题已经在 hierarchy 构建时进行过一次去重了（对该轮次而言），且按时间排序了
+                return trg.problems.slice(0, count);
+            }
+            return [];
+        }
+    }
+    
+    // 兼容原有的裸 roundKey（如 'round1'）提取逻辑，从各个阶梯中抽取组装
+    const seen = new Set();
+    hierarchy.forEach(stage => {
+        const trg = stage.roundGroups.find(rg => rg.roundKey === source);
+        if (trg) {
+            trg.problems.forEach(p => {
+                if (!seen.has(p.id)) {
+                    seen.add(p.id);
+                    flatAll.push(p);
+                }
+            });
+        }
+    });
+    sortProblems(flatAll);
+    return flatAll.slice(0, count);
+}
+
+/**
+ * 智能复习: 标记题目已被复习
+ * @param {string} roundKey - 轮次 (保留为了兼容API)
+ * @param {number|string} problemNum - 题号
+ */
+function markProblemReviewed(roundKey, problemNum) {
+    const progress = getProblemProgress(problemNum);
+    if (!progress || !progress.solvedAt) return;
+
+    // 保留历次复习的时间线记录
+    if (!progress.reviewHistory) {
+        progress.reviewHistory = [];
+    }
+    progress.reviewHistory.push(new Date().toISOString());
+
+    progress.reviewCount = (progress.reviewCount || 0) + 1;
+    progress.lastReviewAt = new Date().toISOString(); 
+    
+    saveUserProgress(); 
+}
+
+/**
+ * 智能复习: 获取所有需要复习的题目，并按照 阶段 -> 题库 的树状结构嵌套返回
+ * @returns {Array} - 例如 [{ stage: 0, stageKey: 'stage-0', name: '一轮复习', roundGroups: [ { roundKey: 'round1', name: '第一轮', problems: [...] } ] }]
+ */
+function generateAllReviewProblemsGrouped() {
+    const stageMap = {}; 
+    
+    // 遍历所有原始题库查找复习数据
+    getOrderedRoundKeys().forEach(roundKey => {
+        const roundData = problemsData[roundKey];
+        if (!roundData || !roundData.categories) return;
+
+        const seenInRound = new Set();
+        
+        roundData.categories.forEach(category => {
+            category.problems.forEach(problemNum => {
+                const problemId = problemNum.toString();
+                // 确保在同一个题库内不会因为多个子分类重复追加问题
+                if (seenInRound.has(problemId)) return;
+                
+                const progress = getProblemProgress(problemNum); 
+                if (progress && progress.solvedAt) {
+                    seenInRound.add(problemId);
+                    
+                    const reviewCount = progress.reviewCount || 0;
+                    const timeToCompare = progress.lastReviewAt ? new Date(progress.lastReviewAt).getTime() : new Date(progress.solvedAt).getTime();
+                    
+                    const probObj = {
+                        problemId: problemId,
+                        time: timeToCompare,
+                        reviewCount: reviewCount,
+                        solvedAt: progress.solvedAt,
+                        lastReviewAt: progress.lastReviewAt,
+                        reviewHistory: progress.reviewHistory || []
+                    };
+
+                    if (!stageMap[reviewCount]) {
+                        stageMap[reviewCount] = {};
+                    }
+                    if (!stageMap[reviewCount][roundKey]) {
+                        stageMap[reviewCount][roundKey] = {
+                            roundKey: roundKey,
+                            name: roundData.name,
+                            problems: []
+                        };
+                    }
+                    stageMap[reviewCount][roundKey].problems.push(probObj);
+                }
+            });
+        });
+    });
+
+    const hierarchy = [];
+    const stageNames = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十'];
+    
+    Object.keys(stageMap).sort((a, b) => Number(a) - Number(b)).forEach(countStr => {
+        const c = parseInt(countStr);
+        const name = c < stageNames.length ? `${stageNames[c]}轮复习` : `第${c + 1}轮复习`;
+        
+        const roundGroups = [];
+        getOrderedRoundKeys().forEach(rk => {
+            if (stageMap[countStr][rk]) {
+                const grp = stageMap[countStr][rk];
+                // 当前分类下的题目按时间线排序
+                grp.problems.sort((a, b) => a.time - b.time);
+                roundGroups.push({
+                    roundKey: rk,
+                    name: grp.name,
+                    problems: grp.problems.map(p => ({
+                        id: p.problemId,
+                        reviewCount: p.reviewCount,
+                        solvedAt: p.solvedAt,
+                        lastReviewAt: p.lastReviewAt,
+                        reviewHistory: p.reviewHistory || []
+                    }))
+                });
+            }
+        });
+        
+        hierarchy.push({
+            stage: c,
+            stageKey: `stage-${c}`,
+            name: name,
+            roundGroups: roundGroups
+        });
+    });
+
+    return hierarchy;
+}

@@ -443,7 +443,7 @@
     z-index: 10;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
-.problem-wrapper:hover .copy-btn, .problem-wrapper:hover .link-btn { display: flex; }
+.problem-wrapper:hover .copy-btn, .problem-wrapper:hover .link-btn, .review-problems-wrap:hover .link-btn { display: flex; }
 
 .copy-btn { top: -8px; right: -8px; background: white; border: 2px solid #667eea; }
 .copy-btn:hover { background: #667eea; transform: scale(1.1); }
@@ -495,4 +495,385 @@
 .footer-text {
     color: #888;
     font-size: 0.85rem;
+}
+
+/* --- Review Section --- */
+.review-section {
+    background: linear-gradient(to right, #FFFDE7, #ffffff);
+    padding: 1.5rem 2rem;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(255, 193, 7, 0.15);
+    margin-bottom: 2rem;
+    border-left: 5px solid #FFC107;
+    animation: fadeIn 0.4s ease-out;
+}
+
+.review-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.review-title {
+    font-size: 1.3rem;
+    color: #F57F17;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: bold;
+}
+
+.btn-generate-review {
+    padding: 8px 16px;
+    background: #FFC107;
+    color: #333;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+}
+
+.btn-generate-review:hover {
+    background: #FFB300;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
+}
+
+.review-problems-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.review-problems-wrap {
+    position: relative;
+    min-height: 80px;
+}
+
+.review-problem-item {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    background: white;
+    border: 2px solid #FFCC80;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+    color: #666;
+    padding: 0.8rem;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.review-problem-item:hover {
+    border-color: #FF9800;
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(255, 152, 0, 0.2);
+}
+
+.review-problem-item .problem-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+    gap: 0.3rem;
+}
+
+.review-problem-item .problem-number {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #FF9800;
+}
+
+.review-problem-item .problem-title {
+    font-size: 0.75rem;
+    color: #555;
+    line-height: 1.2;
+    font-weight: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: break-word;
+}
+
+.review-count-badge {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    background: #FFF3CD;
+    color: #856404;
+    font-size: 0.65rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: bold;
+    pointer-events: none;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* 复习完成状态按复习阶段隔离，避免第一轮和第二轮互相污染 */
+.review-problem-item.reviewed {
+    color: white;
+    border-color: transparent;
+}
+.review-problem-item.reviewed[data-review-stage="0"] {
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+}
+.review-problem-item.reviewed[data-review-stage="1"] {
+    background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+}
+.review-problem-item.reviewed[data-review-stage="2"] {
+    background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+}
+.review-problem-item.reviewed[data-review-stage="3"] {
+    background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+}
+.review-problem-item.reviewed[data-review-stage="4"] {
+    background: linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%);
+}
+.review-problem-item.reviewed[data-review-stage="5"] {
+    background: linear-gradient(135deg, #00BCD4 0%, #0097A7 100%);
+}
+.review-problem-item.reviewed[data-review-stage="6"] {
+    background: linear-gradient(135deg, #8BC34A 0%, #689F38 100%);
+}
+.review-problem-item.reviewed .problem-number { color: white; }
+.review-problem-item.reviewed .problem-title { color: rgba(255, 255, 255, 0.95); }
+.review-problem-item.reviewed .review-count-badge {
+    background: rgba(0, 0, 0, 0.2);
+    color: white;
+}
+
+/* --- Floating Review Button --- */
+.floating-btn {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(255, 152, 0, 0.4);
+    cursor: pointer;
+    z-index: 1000;
+    user-select: none;
+    transition: left 0.3s ease, top 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
+}
+
+.floating-btn .floating-icon {
+    font-size: 1.5rem;
+    line-height: 1;
+}
+
+.floating-btn .floating-text {
+    font-size: 0.75rem;
+    font-weight: bold;
+    margin-top: 2px;
+}
+
+.floating-btn.docked {
+    opacity: 0.5;
+}
+
+.floating-btn.docked-left {
+    left: 0 !important;
+    transform: translateY(-50%) translateX(-40%);
+}
+
+.floating-btn.docked-right {
+    left: auto !important;
+    right: 0 !important;
+    transform: translateY(-50%) translateX(40%);
+}
+
+.floating-btn.docked:hover {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+}
+
+/* --- Review Groups (Dashboard) --- */
+.review-group {
+    margin-bottom: 0.5rem;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+}
+
+.review-group-header {
+    padding: 1rem 1.2rem;
+    background: #f9f9f9;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 500;
+    transition: background-color 0.2s;
+    user-select: none;
+}
+
+.review-group-header:hover {
+    background: #f0f0f0;
+}
+
+.review-group-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #333;
+}
+
+.review-group-badge {
+    background: #e0e0e0;
+    color: #555;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+}
+
+.review-group-icon {
+    transition: transform 0.3s ease;
+    color: #888;
+}
+
+.review-group.expanded .review-group-icon {
+    transform: rotate(180deg);
+}
+
+.review-group-content {
+    display: none;
+    padding: 1rem;
+    border-top: 1px solid #eee;
+}
+
+.review-group.expanded .review-group-content {
+    display: grid;
+}
+
+/* 自定义树状选择器 */
+.custom-tree-select {
+    position: relative;
+    width: 280px;
+    user-select: none;
+}
+
+.tree-select-trigger {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #ffcc80;
+    background: #fff;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #333;
+    transition: 0.2s border;
+}
+
+.tree-select-trigger:hover {
+    border-color: #ff9800;
+}
+
+.tree-select-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    min-width: 280px;
+    max-height: 55vh;
+
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    z-index: 1000;
+    margin-top: 8px;
+    display: none;
+    padding: 8px 0;
+}
+
+.tree-select-dropdown.active {
+    display: block;
+}
+
+.tree-optgroup-label {
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: #e65100;
+    cursor: pointer;
+    background: #fff8e1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.tree-optgroup-label:hover {
+    background: #ffecb3;
+}
+
+.tree-optgroup-content {
+    display: none;
+}
+
+.tree-optgroup-content.active {
+    display: block;
+}
+
+.tree-option {
+    padding: 8px 12px 8px 24px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    color: #444;
+}
+
+.tree-option:hover {
+    background: #f5f5f5;
+    color: #ff9800;
+}
+
+/* details 折叠动画重置 */
+.main-collapsible {
+    margin-bottom: 2rem;
+}
+
+.main-collapsible-summary {
+    list-style: none; 
+    cursor: pointer;
+    outline: none;
+}
+
+.main-collapsible-summary::-webkit-details-marker {
+    display: none;
+}
+
+.main-collapsible-summary h3 > span:first-child {
+    transition: transform 0.2s;
+    font-size: 0.8rem;
+    color: #888;
+    display: inline-block;
+}
+
+.main-collapsible[open] .main-collapsible-summary h3 > span:first-child {
+    transform: rotate(90deg);
 }
