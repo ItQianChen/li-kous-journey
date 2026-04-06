@@ -348,7 +348,78 @@ function handleImport(event) {
 }
 
 /**
- * 智能复习: 基于已完成题目，按照最后一次复习时间(或首次打卡时间)升序排列，抽取最老的N道题
+ * 获取题目的最近一次练题时间戳；若未复习则回退到首次完成时间。
+ * @param {Object} problem
+ * @returns {number}
+ */
+function getReviewProblemTimestamp(problem) {
+    if (!problem) return Number.POSITIVE_INFINITY;
+
+    const rawTime = problem.lastReviewAt || problem.solvedAt;
+    const timestamp = rawTime ? new Date(rawTime).getTime() : NaN;
+    return Number.isFinite(timestamp) ? timestamp : Number.POSITIVE_INFINITY;
+}
+
+/**
+ * 按最近一次练题时间升序排序，越久没练越靠前。
+ * @param {Object[]} problems
+ * @returns {Object[]}
+ */
+function sortReviewProblemsByTimestamp(problems) {
+    return [...(Array.isArray(problems) ? problems : [])].sort((a, b) => {
+        const timeDiff = getReviewProblemTimestamp(a) - getReviewProblemTimestamp(b);
+        if (timeDiff !== 0) return timeDiff;
+        return String(a?.id ?? '').localeCompare(String(b?.id ?? ''), 'zh-Hans-CN', { numeric: true });
+    });
+}
+
+/**
+ * 按“越久没练权重越大”的规则进行不放回抽样。
+ * @param {Object[]} problems
+ * @param {number} count
+ * @returns {Object[]}
+ */
+function sampleReviewProblemsByRecency(problems, count = 5) {
+    const normalizedCount = Math.max(0, Number(count) || 0);
+    const sortedProblems = sortReviewProblemsByTimestamp(problems);
+
+    if (normalizedCount === 0 || sortedProblems.length === 0) {
+        return [];
+    }
+
+    if (sortedProblems.length <= normalizedCount) {
+        return sortedProblems;
+    }
+
+    const now = Date.now();
+    const pool = sortedProblems.map(problem => ({
+        problem,
+        weight: Math.max(1, Math.floor((now - getReviewProblemTimestamp(problem)) / (24 * 60 * 60 * 1000)) + 1)
+    }));
+    const selected = [];
+
+    while (selected.length < normalizedCount && pool.length > 0) {
+        const totalWeight = pool.reduce((sum, item) => sum + item.weight, 0);
+        let ticket = Math.random() * totalWeight;
+        let selectedIndex = pool.length - 1;
+
+        for (let i = 0; i < pool.length; i += 1) {
+            ticket -= pool[i].weight;
+            if (ticket <= 0) {
+                selectedIndex = i;
+                break;
+            }
+        }
+
+        selected.push(pool[selectedIndex].problem);
+        pool.splice(selectedIndex, 1);
+    }
+
+    return sortReviewProblemsByTimestamp(selected);
+}
+
+/**
+ * 智能复习: 基于最近一次练题时间进行加权抽取，越早练过的题越容易被抽中。
  * @param {string} source - 要抽取复习题的来源 (如 'all', 'stage-0-all', 'stage-0-round6')
  * @param {number} count - 要抽取的题目数量，默认5题
  * @returns {Array} - 抽取的题目对象数组
@@ -358,15 +429,6 @@ function generateReviewProblems(source, count = 5) {
     
     const hierarchy = generateAllReviewProblemsGrouped();
     let flatAll = [];
-    
-    // 助手函数：按时间戳从小到大排序
-    const sortProblems = (arr) => {
-        arr.sort((a, b) => {
-            const ta = a.lastReviewAt ? new Date(a.lastReviewAt).getTime() : new Date(a.solvedAt).getTime();
-            const tb = b.lastReviewAt ? new Date(b.lastReviewAt).getTime() : new Date(b.solvedAt).getTime();
-            return ta - tb;
-        });
-    };
 
     if (source === 'all') {
         const seen = new Set();
@@ -380,8 +442,7 @@ function generateReviewProblems(source, count = 5) {
                 });
             });
         });
-        sortProblems(flatAll);
-        return flatAll.slice(0, count);
+        return sampleReviewProblemsByRecency(flatAll, count);
     }
     
     if (source.startsWith('stage-')) {
@@ -402,16 +463,11 @@ function generateReviewProblems(source, count = 5) {
                     }
                 });
             });
-            sortProblems(flatAll);
-            return flatAll.slice(0, count);
-        } else {
-            const trg = targetStage.roundGroups.find(rg => rg.roundKey === subsource);
-            if (trg) {
-                // 原题库内的问题已经在 hierarchy 构建时进行过一次去重了（对该轮次而言），且按时间排序了
-                return trg.problems.slice(0, count);
-            }
-            return [];
+            return sampleReviewProblemsByRecency(flatAll, count);
         }
+
+        const targetRoundGroup = targetStage.roundGroups.find(rg => rg.roundKey === subsource);
+        return targetRoundGroup ? sampleReviewProblemsByRecency(targetRoundGroup.problems, count) : [];
     }
     
     // 兼容原有的裸 roundKey（如 'round1'）提取逻辑，从各个阶梯中抽取组装
@@ -427,8 +483,8 @@ function generateReviewProblems(source, count = 5) {
             });
         }
     });
-    sortProblems(flatAll);
-    return flatAll.slice(0, count);
+
+    return sampleReviewProblemsByRecency(flatAll, count);
 }
 
 /**
@@ -526,7 +582,7 @@ function generateAllReviewProblemsGrouped() {
         getOrderedRoundKeys().forEach(rk => {
             if (stageMap[countStr][rk]) {
                 const grp = stageMap[countStr][rk];
-                // 当前分类下的题目按时间线排序
+                // 当前分类下的题目按最近练题时间排序，越久没练越靠前
                 grp.problems.sort((a, b) => a.time - b.time);
 
                 const categories = Object.values(grp.categories).map(categoryGroup => {

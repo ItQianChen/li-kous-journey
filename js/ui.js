@@ -748,7 +748,7 @@ function renderReviewWorkspaceCountPicker() {
     renderReviewWorkspaceFlatPicker({
         containerId: 'reviewWorkspaceCountPicker',
         selectId: 'reviewWorkspaceCount',
-        triggerMeta: '控制本次随机抽取题目数量',
+        triggerMeta: '控制本次按最近练题时间加权抽取的题目数量',
         emptyText: '暂无可选数量',
         onSelect: handleReviewWorkspaceCountChange
     });
@@ -1287,14 +1287,10 @@ function refreshReviewWorkspaceStats() {
 }
 
 function getFreshReviewWorkspaceItems() {
-    return collectStageReviewItems(reviewWorkspaceState.stage, reviewWorkspaceState.category)
-        .sort((a, b) => {
-            const aReviewed = a.reviewCount > a.reviewStage ? 1 : 0;
-            const bReviewed = b.reviewCount > b.reviewStage ? 1 : 0;
-            if (aReviewed !== bReviewed) return aReviewed - bReviewed;
-            return a.id - b.id;
-        })
-        .slice(0, reviewWorkspaceState.count);
+    return sampleReviewProblemsByRecency(
+        collectStageReviewItems(reviewWorkspaceState.stage, reviewWorkspaceState.category),
+        reviewWorkspaceState.count
+    );
 }
 
 function syncReviewWorkspaceItemsFromProgress() {
