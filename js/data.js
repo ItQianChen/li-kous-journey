@@ -332,6 +332,9 @@ function handleImport(event) {
                 userProgress = imported;
                 saveUserProgress();
                 selectRound(currentRound, selectedCategory ? selectedCategory.name : null); // 依赖 ui.js
+                if (typeof renderReviewWorkspace === 'function') {
+                    renderReviewWorkspace();
+                }
                 alert('✅ 进度数据导入成功！');
                 closeDataMenu(); // 依赖 modals.js
             }
@@ -482,7 +485,8 @@ function generateAllReviewProblemsGrouped() {
                         reviewCount: reviewCount,
                         solvedAt: progress.solvedAt,
                         lastReviewAt: progress.lastReviewAt,
-                        reviewHistory: progress.reviewHistory || []
+                        reviewHistory: progress.reviewHistory || [],
+                        categoryName: category.name || '未分类'
                     };
 
                     if (!stageMap[reviewCount]) {
@@ -492,10 +496,20 @@ function generateAllReviewProblemsGrouped() {
                         stageMap[reviewCount][roundKey] = {
                             roundKey: roundKey,
                             name: roundData.name,
+                            problems: [],
+                            categories: {}
+                        };
+                    }
+
+                    stageMap[reviewCount][roundKey].problems.push(probObj);
+
+                    if (!stageMap[reviewCount][roundKey].categories[probObj.categoryName]) {
+                        stageMap[reviewCount][roundKey].categories[probObj.categoryName] = {
+                            name: probObj.categoryName,
                             problems: []
                         };
                     }
-                    stageMap[reviewCount][roundKey].problems.push(probObj);
+                    stageMap[reviewCount][roundKey].categories[probObj.categoryName].problems.push(probObj);
                 }
             });
         });
@@ -514,6 +528,23 @@ function generateAllReviewProblemsGrouped() {
                 const grp = stageMap[countStr][rk];
                 // 当前分类下的题目按时间线排序
                 grp.problems.sort((a, b) => a.time - b.time);
+
+                const categories = Object.values(grp.categories).map(categoryGroup => {
+                    categoryGroup.problems.sort((a, b) => a.time - b.time);
+                    return {
+                        name: categoryGroup.name,
+                        problems: categoryGroup.problems.map(p => ({
+                            id: p.problemId,
+                            reviewCount: p.reviewCount,
+                            reviewStage: c,
+                            solvedAt: p.solvedAt,
+                            lastReviewAt: p.lastReviewAt,
+                            reviewHistory: p.reviewHistory || [],
+                            categoryName: p.categoryName
+                        }))
+                    };
+                });
+
                 roundGroups.push({
                     roundKey: rk,
                     name: grp.name,
@@ -523,8 +554,10 @@ function generateAllReviewProblemsGrouped() {
                         reviewStage: c,  // 当前所处的复习阶段，用于 CSS 颜色匹配
                         solvedAt: p.solvedAt,
                         lastReviewAt: p.lastReviewAt,
-                        reviewHistory: p.reviewHistory || []
-                    }))
+                        reviewHistory: p.reviewHistory || [],
+                        categoryName: p.categoryName
+                    })),
+                    categories: categories
                 });
             }
         });
@@ -539,3 +572,4 @@ function generateAllReviewProblemsGrouped() {
 
     return hierarchy;
 }
+

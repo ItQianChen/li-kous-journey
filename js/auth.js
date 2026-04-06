@@ -70,4 +70,5 @@ function showMainPage() {
     checkNoticeVisibility(); // 依赖 modals.js
     jumpToCurrentProgress(); // 依赖 ui.js - 自动跳转到当前进度
     renderCalendar(); // 依赖 calendar.js
+    restoreReviewWorkspaceOnEntry(); // 依赖 ui.js - 恢复复习工作台入口状态
 }

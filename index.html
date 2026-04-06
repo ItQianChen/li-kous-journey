@@ -419,6 +419,137 @@
             </div>
         </div>
 
+        <!-- 智能复习工作台 -->
+        <div id="reviewWorkspace" class="review-workspace" style="display: none;">
+            <div class="review-workspace-shell">
+                <div class="review-workspace-header">
+                    <div class="review-workspace-header-main">
+                        <button
+                            class="review-workspace-close-btn"
+                            onclick="closeReviewWorkspace()"
+                            aria-label="退出工作台"
+                            title="退出工作台"
+                            style="align-self:flex-start; width:42px; height:42px; padding:0; border-radius:999px; display:inline-flex; align-items:center; justify-content:center; font-size:1.25rem; font-weight:800; line-height:1; color:#f97316; border:1px solid rgba(249,115,22,0.18); background:#ffffff; box-shadow:0 10px 24px rgba(15,23,42,0.08); margin-bottom:0.75rem;"
+                        >←</button>
+                        <div class="review-workspace-eyebrow">🔄 智能复习工作台</div>
+                        <h2 id="reviewWorkspaceTitle">按复习阶段统一推进</h2>
+                        <p id="reviewWorkspaceDesc">先选当前是第几阶段复习，再从该阶段的分类里抽题，最后在右侧查看本次摘要与最近完成。</p>
+                    </div>
+                    <div class="review-workspace-header-side">
+                        <div class="review-workspace-stage-card">
+                            <div class="review-workspace-stage-card-top">
+                                <div class="review-workspace-section-eyebrow">第 1 部分</div>
+                                <span class="review-workspace-stage-card-hint">选择第几轮复习</span>
+                            </div>
+                            <label for="reviewWorkspaceStageSelect">当前复习阶段</label>
+                            <div class="review-workspace-picker review-workspace-picker-custom review-workspace-picker-stage">
+                                <select id="reviewWorkspaceStageSelect" class="review-workspace-select review-workspace-select-hidden" onchange="handleReviewWorkspaceStageChange()" tabindex="-1" aria-hidden="true"></select>
+                                <div id="reviewWorkspaceStagePicker" class="review-workspace-tree-select"></div>
+                            </div>
+<!--                            <div class="review-workspace-stage-meta">-->
+<!--                                <span>当前查看</span>-->
+<!--                                <strong id="reviewWorkspaceStageLabel">第一轮复习</strong>-->
+<!--                            </div>-->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="review-workspace-content">
+                    <div class="review-workspace-main">
+                        <div class="review-workspace-list-panel">
+                            <details class="review-workspace-section review-workspace-pick-section">
+                                <summary class="review-workspace-section-header" style="list-style: none; outline: none; cursor: pointer; padding-bottom: 0.5rem; margin-bottom: 1rem; border-bottom: 1px solid #ffe0b2;">
+                                    <div>
+                                        <div class="review-workspace-section-eyebrow">第 2 部分</div>
+                                        <h3>抽取复习题目</h3>
+                                    </div>
+                                    <div class="review-workspace-inline-stat">
+                                        <span>抽取范围</span>
+                                        <strong id="reviewWorkspaceCategoryLabel">当前阶段全部分类</strong>
+                                    </div>
+                                </summary>
+                                <div class="review-workspace-control-row review-workspace-control-row-multi" style="cursor: default;">
+                                    <div class="review-workspace-control-layout">
+                                        <div class="review-workspace-control-item review-workspace-control-item-category">
+                                            <label for="reviewWorkspaceCategorySelect">当前阶段分类</label>
+                                            <div class="review-workspace-category-picker">
+                                                <select id="reviewWorkspaceCategorySelect" class="review-workspace-select review-workspace-select-hidden" onchange="handleReviewWorkspaceCategoryChange()" tabindex="-1" aria-hidden="true"></select>
+                                                <div id="reviewWorkspaceCategoryTree" class="review-workspace-tree-select"></div>
+                                            </div>
+                                        </div>
+                                        <div class="review-workspace-control-actions">
+                                            <div class="review-workspace-control-item review-workspace-control-item-count">
+                                                <label for="reviewWorkspaceCount">抽取数量</label>
+                                                <div class="review-workspace-picker review-workspace-picker-custom review-workspace-picker-count">
+                                                    <select id="reviewWorkspaceCount" class="review-workspace-select review-workspace-select-hidden" onchange="handleReviewWorkspaceCountChange()" tabindex="-1" aria-hidden="true">
+                                                        <option value="5">5 题</option>
+                                                        <option value="10" selected>10 题</option>
+                                                        <option value="20">20 题</option>
+                                                    </select>
+                                                    <div id="reviewWorkspaceCountPicker" class="review-workspace-tree-select"></div>
+                                                </div>
+                                            </div>
+                                            <button class="review-card-complete review-workspace-draw-btn" onclick="drawReviewWorkspaceProblems()">🎯 重新抽取</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="reviewWorkspaceEmpty" class="review-workspace-empty" style="display: none;">
+                                    <h3>当前范围暂无待复习题目</h3>
+                                    <p>先去完成题目打卡，或者切换到别的复习轮次 / 分类。</p>
+                                </div>
+                                <div id="reviewWorkspaceGrid" class="review-workspace-grid"></div>
+                            </details>
+
+                            <section class="review-workspace-section review-workspace-overview-section">
+                                <div class="review-workspace-section-header">
+                                    <div>
+                                        <div class="review-workspace-section-eyebrow">第 3 部分</div>
+                                        <h3>当前阶段全部分类题目</h3>
+                                    </div>
+                                    <div class="review-workspace-inline-stat">
+                                        <span>已完成 / 总数</span>
+                                        <strong id="reviewWorkspaceProgress">0 / 0</strong>
+                                    </div>
+                                </div>
+                                <div class="review-workspace-overview-note">
+                                    <span id="reviewWorkspaceSourceLabel">第一轮复习</span>
+                                    <span>·</span>
+                                    <span id="reviewWorkspaceOverviewCount">0 道题</span>
+                                </div>
+                                <div id="reviewWorkspaceGroupedView" class="review-workspace-grouped-view">
+                                    <div id="reviewWorkspaceGroupedContainer"></div>
+                                </div>
+                            </section>
+                        </div>
+                        <aside class="review-workspace-summary-panel">
+                            <div class="review-workspace-summary-card">
+                                <div class="review-workspace-summary-card-header">
+                                    <div class="review-workspace-section-eyebrow">第 4 部分</div>
+                                    <h3>本次摘要</h3>
+                                </div>
+                                <div class="review-workspace-summary-metrics">
+                                    <div>
+                                        <span>待处理</span>
+                                        <strong id="reviewWorkspacePendingCount">0</strong>
+                                    </div>
+                                    <div>
+                                        <span>今日已完成</span>
+                                        <strong id="reviewWorkspaceDoneCount">0</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="review-workspace-summary-card">
+                                <h3>今日完成</h3>
+                                <div id="reviewWorkspaceRecentList" class="review-workspace-recent-list">
+                                    <p class="review-workspace-recent-empty">今天还没有完成记录。</p>
+                                </div>
+                            </div>
+                        </aside>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- 智能复习弹窗 -->
         <div class="modal" id="reviewModal">
             <div class="modal-content review-modal-content" style="max-width: 950px; max-height: 90vh; display: flex; flex-direction: column;">
@@ -430,6 +561,13 @@
                     <button onclick="closeReviewModal()" class="modal-close">✕</button>
                 </div>
                 <div class="modal-body" style="padding: 1.5rem 2rem; overflow-y: auto;">
+                    <div class="review-modal-actions" style="display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 1rem; padding: 0.9rem 1rem; background: #fff8e1; border: 1px solid #ffe0b2; border-radius: 10px;">
+                        <div>
+                            <strong style="color: #e65100; display: block; margin-bottom: 4px;">这里保留为高级筛选面板</strong>
+                            <span style="color: #8d6e63; font-size: 0.9rem;">主入口已经改为复习工作台，这里用于切换来源和查看全量分组。</span>
+                        </div>
+                        <button class="btn-generate-review" onclick="openReviewWorkspaceFromModal()">进入复习工作台</button>
+                    </div>
                     
                     <details class="main-collapsible" id="recommendDetails" open>
                         <summary class="main-collapsible-summary">

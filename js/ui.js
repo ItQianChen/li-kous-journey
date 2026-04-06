@@ -570,9 +570,1077 @@ function renderCustomTreeSelect(hierarchy) {
     }
 }
 
-/**
- * 打开复习弹窗
- */
+const reviewWorkspaceState = {
+    stage: 0,
+    category: 'all',
+    count: 10,
+    items: [],
+    isOpen: false
+};
+
+function getReviewWorkspaceStorageKey() {
+    return currentUser ? `reviewWorkspaceState_${currentUser}` : null;
+}
+
+function serializeReviewWorkspaceItems(items) {
+    if (!Array.isArray(items)) return [];
+
+    return items.map(item => ({
+        id: item.id,
+        reviewStage: Number(item.reviewStage) || 0,
+        categoryName: item.categoryName || ''
+    }));
+}
+
+function hydrateReviewWorkspaceItem(rawItem) {
+    if (!rawItem || rawItem.id === undefined || rawItem.id === null) return null;
+
+    const reviewStage = Number(rawItem.reviewStage);
+    if (!Number.isInteger(reviewStage) || reviewStage < 0) return null;
+
+    const progress = getProblemProgress(rawItem.id);
+    if (!progress || !progress.solvedAt) return null;
+
+    return {
+        id: rawItem.id,
+        reviewCount: Number(progress.reviewCount) || 0,
+        reviewStage,
+        solvedAt: progress.solvedAt,
+        lastReviewAt: progress.lastReviewAt,
+        reviewHistory: Array.isArray(progress.reviewHistory) ? [...progress.reviewHistory] : [],
+        categoryName: rawItem.categoryName || ''
+    };
+}
+
+function saveReviewWorkspaceState() {
+    const storageKey = getReviewWorkspaceStorageKey();
+    if (!storageKey) return;
+
+    localStorage.setItem(storageKey, JSON.stringify({
+        stage: reviewWorkspaceState.stage,
+        category: reviewWorkspaceState.category,
+        count: reviewWorkspaceState.count,
+        items: serializeReviewWorkspaceItems(reviewWorkspaceState.items),
+        isOpen: reviewWorkspaceState.isOpen === true
+    }));
+}
+
+function loadReviewWorkspaceState() {
+    const storageKey = getReviewWorkspaceStorageKey();
+    if (!storageKey) return;
+
+    const saved = localStorage.getItem(storageKey);
+    if (!saved) return;
+
+    try {
+        const parsed = JSON.parse(saved);
+        if (Number.isInteger(Number(parsed.stage))) {
+            reviewWorkspaceState.stage = Number(parsed.stage);
+        }
+        if (typeof parsed.category === 'string' && parsed.category.trim()) {
+            reviewWorkspaceState.category = parsed.category;
+        }
+        if (Number.isInteger(Number(parsed.count))) {
+            reviewWorkspaceState.count = Number(parsed.count);
+        }
+        reviewWorkspaceState.items = Array.isArray(parsed.items)
+            ? parsed.items.map(hydrateReviewWorkspaceItem).filter(Boolean)
+            : [];
+        reviewWorkspaceState.isOpen = parsed.isOpen === true;
+    } catch (error) {
+        localStorage.removeItem(storageKey);
+    }
+}
+
+function restoreReviewWorkspaceOnEntry() {
+    loadReviewWorkspaceState();
+    if (!reviewWorkspaceState.isOpen) return;
+    openReviewWorkspace();
+}
+
+function renderReviewWorkspaceFlatPicker({
+    containerId,
+    selectId,
+    triggerMeta,
+    emptyText,
+    onSelect
+}) {
+    const container = document.getElementById(containerId);
+    const select = document.getElementById(selectId);
+    if (!container || !select) return;
+
+    const options = Array.from(select.options || []).map(option => ({
+        value: option.value,
+        label: option.textContent || option.label || option.value,
+        disabled: option.disabled
+    }));
+    const activeValue = select.value;
+    const activeOption = options.find(option => option.value === activeValue) || options[0];
+    const pickerVariant = selectId === 'reviewWorkspaceCount' ? 'count' : 'stage';
+
+    container.innerHTML = `
+        <div class="rw-selectbox rw-selectbox-flat rw-selectbox-${pickerVariant}">
+            <button type="button" class="rw-selectbox-trigger" aria-haspopup="listbox" aria-expanded="false">
+                <span class="rw-selectbox-trigger-text">
+                    <span class="rw-selectbox-trigger-label">${activeOption ? activeOption.label : emptyText}</span>
+                    <span class="rw-selectbox-trigger-meta">${triggerMeta}</span>
+                </span>
+                <span class="rw-selectbox-trigger-icon">▾</span>
+            </button>
+            <div class="rw-selectbox-panel rw-selectbox-panel-flat" role="listbox">
+                ${options.map(option => `
+                    <button
+                        type="button"
+                        class="rw-selectbox-option ${option.value === activeValue ? 'is-selected' : ''} ${option.disabled ? 'is-disabled' : ''}"
+                        data-picker-value="${option.value}"
+                        ${option.disabled ? 'disabled' : ''}
+                    >
+                        <span class="rw-selectbox-option-main">
+                            <span class="rw-selectbox-option-title">${option.label}</span>
+                            <span class="rw-selectbox-option-subtitle">${option.value === activeValue ? '当前已选中' : triggerMeta}</span>
+                        </span>
+                    </button>
+                `).join('') || `<div class="rw-selectbox-empty">${emptyText}</div>`}
+            </div>
+        </div>
+    `;
+
+    const root = container.querySelector('.rw-selectbox');
+    const trigger = container.querySelector('.rw-selectbox-trigger');
+    const panel = container.querySelector('.rw-selectbox-panel');
+    if (!root || !trigger || !panel) return;
+
+    trigger.addEventListener('click', event => {
+        event.stopPropagation();
+        const shouldOpen = !root.classList.contains('is-open');
+        closeReviewWorkspaceCategoryTrees();
+        root.classList.toggle('is-open', shouldOpen);
+        trigger.setAttribute('aria-expanded', String(shouldOpen));
+    });
+
+    panel.addEventListener('click', event => {
+        event.stopPropagation();
+    });
+
+    container.querySelectorAll('[data-picker-value]').forEach(button => {
+        button.addEventListener('click', () => {
+            if (button.disabled) return;
+            const value = button.dataset.pickerValue;
+            if (value === undefined) return;
+            select.value = value;
+            closeReviewWorkspaceCategoryTrees();
+            onSelect();
+        });
+    });
+}
+
+function renderReviewWorkspaceStagePicker() {
+    renderReviewWorkspaceFlatPicker({
+        containerId: 'reviewWorkspaceStagePicker',
+        selectId: 'reviewWorkspaceStageSelect',
+        triggerMeta: '切换当前要推进的复习阶段',
+        emptyText: '暂无可复习阶段',
+        onSelect: handleReviewWorkspaceStageChange
+    });
+}
+
+function renderReviewWorkspaceCountPicker() {
+    renderReviewWorkspaceFlatPicker({
+        containerId: 'reviewWorkspaceCountPicker',
+        selectId: 'reviewWorkspaceCount',
+        triggerMeta: '控制本次随机抽取题目数量',
+        emptyText: '暂无可选数量',
+        onSelect: handleReviewWorkspaceCountChange
+    });
+}
+
+function syncReviewWorkspaceStageOptions() {
+    const select = document.getElementById('reviewWorkspaceStageSelect');
+    if (!select) return;
+
+    const hierarchy = generateAllReviewProblemsGrouped();
+    if (hierarchy.length === 0) {
+        select.innerHTML = '<option value="-1">暂无可复习内容</option>';
+        reviewWorkspaceState.stage = -1;
+        renderReviewWorkspaceStagePicker();
+        return;
+    }
+
+    select.innerHTML = hierarchy.map((stageItem, index) =>
+        `<option value="${index}">${stageItem.name}</option>`
+    ).join('');
+
+    const targetStage = reviewWorkspaceState.stage;
+    const hasCurrent = hierarchy[targetStage] !== undefined;
+    
+    if (hasCurrent) {
+        select.value = targetStage;
+    } else {
+        select.value = "0";
+        reviewWorkspaceState.stage = 0;
+    }
+
+    renderReviewWorkspaceStagePicker();
+}
+
+function getReviewWorkspaceStageCategoryOptions(stageIndex) {
+    const hierarchy = generateAllReviewProblemsGrouped();
+    const stageData = hierarchy[stageIndex];
+    if (!stageData || !stageData.roundGroups) {
+        return [{ value: 'all', label: '当前阶段全部分类', count: 0 }];
+    }
+
+    const totalCount = stageData.roundGroups.reduce((sum, group) => sum + (group.problems || []).length, 0);
+    const result = [{ value: 'all', label: '当前阶段所有大分类与子分类', count: totalCount }];
+
+    stageData.roundGroups.forEach(rg => {
+        const groupCount = (rg.problems || []).length;
+        const optgroup = {
+            label: rg.name,
+            roundKey: rg.roundKey,
+            count: groupCount,
+            options: [{ value: `${rg.roundKey}::all`, label: '全部子分类', count: groupCount, kind: 'group-all' }]
+        };
+
+        (rg.categories || []).forEach(cat => {
+            optgroup.options.push({
+                value: `${rg.roundKey}::${cat.name}`,
+                label: cat.name,
+                count: (cat.problems || []).length,
+                kind: 'category'
+            });
+        });
+        result.push(optgroup);
+    });
+    return result;
+}
+
+function getReviewWorkspaceCategoryText(categoryValue) {
+    if (categoryValue === 'all') return '当前阶段所有分类';
+    const parts = (categoryValue || '').split('::');
+    if (parts.length === 2) {
+        if (parts[1] === 'all') return `${problemsData[parts[0]]?.name || parts[0]} 全部子分类`;
+        return `${problemsData[parts[0]]?.name || parts[0]} · ${parts[1]}`;
+    }
+    return categoryValue || '未选择分类';
+}
+
+function closeReviewWorkspaceCategoryTrees() {
+    document.querySelectorAll('.rw-selectbox.is-open').forEach(root => {
+        root.classList.remove('is-open');
+        const trigger = root.querySelector('.rw-selectbox-trigger');
+        if (trigger) {
+            trigger.setAttribute('aria-expanded', 'false');
+        }
+    });
+}
+
+function renderReviewWorkspaceCategoryTree(optionsData) {
+    const container = document.getElementById('reviewWorkspaceCategoryTree');
+    const select = document.getElementById('reviewWorkspaceCategorySelect');
+    if (!container || !select) return;
+
+    const activeValue = select.value || 'all';
+    const summaryOption = optionsData[0] || { value: 'all', label: '当前阶段所有大分类与子分类', count: 0 };
+    const groups = optionsData.filter(item => item.options);
+
+    container.innerHTML = `
+        <div class="rw-selectbox rw-selectbox-category">
+            <button type="button" class="rw-selectbox-trigger" aria-haspopup="dialog" aria-expanded="false">
+                <span class="rw-selectbox-trigger-text">
+                    <span class="rw-selectbox-trigger-label">${getReviewWorkspaceCategoryText(activeValue)}</span>
+                    <span class="rw-selectbox-trigger-meta">按大分类 / 子分类筛选</span>
+                </span>
+                <span class="rw-selectbox-trigger-icon">▾</span>
+            </button>
+            <div class="rw-selectbox-panel rw-selectbox-panel-category">
+                <button type="button" class="rw-selectbox-option rw-selectbox-option-root ${activeValue === 'all' ? 'is-selected' : ''}" data-category-value="all">
+                    <span class="rw-selectbox-option-main">
+                        <span class="rw-selectbox-option-title">${summaryOption.label}</span>
+                        <span class="rw-selectbox-option-subtitle">直接覆盖当前复习阶段的全部题目</span>
+                    </span>
+                    <span class="rw-selectbox-option-count">${summaryOption.count} 题</span>
+                </button>
+                ${groups.map(group => `
+                    <details class="rw-selectbox-group">
+                        <summary class="rw-selectbox-group-summary">
+                            <span class="rw-selectbox-group-main">
+                                <span class="rw-selectbox-group-title">${group.label}</span>
+                                <span class="rw-selectbox-group-subtitle">点击展开或折叠该大分类下的小分类</span>
+                            </span>
+                            <span class="rw-selectbox-group-meta">
+                                <span class="rw-selectbox-group-count">${group.count} 题</span>
+                                <span class="rw-selectbox-group-arrow">▾</span>
+                            </span>
+                        </summary>
+                        <div class="rw-selectbox-children">
+                            ${group.options.map(option => `
+                                <button type="button" class="rw-selectbox-option ${activeValue === option.value ? 'is-selected' : ''} ${option.kind === 'group-all' ? 'is-group-all' : ''}" data-category-value="${option.value}">
+                                    <span class="rw-selectbox-option-main">
+                                        <span class="rw-selectbox-option-title">${option.label}</span>
+                                        <span class="rw-selectbox-option-subtitle">${option.kind === 'group-all' ? '覆盖当前大分类下全部子分类题目' : '只抽取当前子分类题目'}</span>
+                                    </span>
+                                    <span class="rw-selectbox-option-count">${option.count} 题</span>
+                                </button>
+                            `).join('')}
+                        </div>
+                    </details>
+                `).join('')}
+            </div>
+        </div>
+    `;
+
+    const root = container.querySelector('.rw-selectbox');
+    const trigger = container.querySelector('.rw-selectbox-trigger');
+    const panel = container.querySelector('.rw-selectbox-panel');
+    if (!root || !trigger || !panel) return;
+
+    trigger.addEventListener('click', event => {
+        event.stopPropagation();
+        const shouldOpen = !root.classList.contains('is-open');
+        closeReviewWorkspaceCategoryTrees();
+        root.classList.toggle('is-open', shouldOpen);
+        trigger.setAttribute('aria-expanded', String(shouldOpen));
+    });
+
+    panel.addEventListener('click', event => {
+        event.stopPropagation();
+    });
+
+    container.querySelectorAll('[data-category-value]').forEach(button => {
+        button.addEventListener('click', () => {
+            select.value = button.dataset.categoryValue || 'all';
+            closeReviewWorkspaceCategoryTrees();
+            handleReviewWorkspaceCategoryChange();
+        });
+    });
+
+    if (!window.reviewWorkspaceTreeSelectDocBound) {
+        document.addEventListener('click', () => closeReviewWorkspaceCategoryTrees());
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape') {
+                closeReviewWorkspaceCategoryTrees();
+            }
+        });
+        window.reviewWorkspaceTreeSelectDocBound = true;
+    }
+}
+
+function syncReviewWorkspaceStageCategoryOptions(stageIndex) {
+    const select = document.getElementById('reviewWorkspaceCategorySelect');
+    if (!select) return;
+
+    const optionsData = getReviewWorkspaceStageCategoryOptions(stageIndex);
+    let html = '';
+    optionsData.forEach(item => {
+        if (item.options) {
+            html += `<optgroup label="${item.label}">`;
+            item.options.forEach(opt => {
+                html += `<option value="${opt.value}">${opt.label}</option>`;
+            });
+            html += `</optgroup>`;
+        } else {
+            html += `<option value="${item.value}">${item.label}</option>`;
+        }
+    });
+    select.innerHTML = html;
+
+    const flatOptions = optionsData.flatMap(item => item.options ? item.options.map(option => option.value) : [item.value]);
+    const fallbackValue = 'all';
+    const hasCurrent = flatOptions.includes(reviewWorkspaceState.category);
+    select.value = hasCurrent ? reviewWorkspaceState.category : fallbackValue;
+    reviewWorkspaceState.category = select.value;
+    renderReviewWorkspaceCategoryTree(optionsData);
+}
+
+function getReviewWorkspaceCategoryLabel() {
+    return getReviewWorkspaceCategoryText(reviewWorkspaceState.category);
+}
+
+function collectStageReviewItems(stageIndex, categoryVal) {
+    const hierarchy = generateAllReviewProblemsGrouped();
+    const stageData = hierarchy[stageIndex];
+    if (!stageData) return [];
+
+    let items = [];
+    
+    if (categoryVal === 'all') {
+        stageData.roundGroups.forEach(rg => {
+            items = items.concat(rg.problems || []);
+        });
+    } else {
+        const parts = categoryVal.split('::');
+        const rKey = parts[0];
+        const cName = parts[1];
+        
+        const rg = stageData.roundGroups.find(g => g.roundKey === rKey);
+        if (rg) {
+            if (cName === 'all') {
+                items = items.concat(rg.problems || []);
+            } else {
+                const category = (rg.categories || []).find(c => c.name === cName);
+                if (category) items = items.concat(category.problems || []);
+            }
+        }
+    }
+
+    return Array.from(new Map(items.map(item => [item.id, item])).values());
+}
+
+function getStageSourceLabel(stageIndex) {
+    const hierarchy = generateAllReviewProblemsGrouped();
+    const stageData = hierarchy[stageIndex];
+    return stageData ? stageData.name : '未知阶段';
+}
+
+function getStageGroupedCategories(stageIndex) {
+    const hierarchy = generateAllReviewProblemsGrouped();
+    const stageData = hierarchy[stageIndex];
+    if (!stageData) return [];
+
+    return stageData.roundGroups.map(rg => {
+        const categories = (rg.categories || []).filter(cat => (cat.problems || []).length > 0);
+        const totalProbs = categories.reduce((sum, c) => sum + c.problems.length, 0);
+
+        return {
+            roundKey: rg.roundKey,
+            name: rg.name,
+            categories,
+            totalProbs
+        };
+    }).filter(rg => rg.totalProbs > 0);
+}
+
+function buildReviewMetaText(reviewCount, solvedAt, lastReviewAt, reviewHistory) {
+    const history = Array.isArray(reviewHistory) ? reviewHistory : [];
+
+    if (reviewCount === 0 && solvedAt) {
+        const date = new Date(solvedAt);
+        return `首刷于 ${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    }
+
+    const referenceTime = history[reviewCount - 1] || lastReviewAt;
+    if (referenceTime) {
+        const date = new Date(referenceTime);
+        return `第${reviewCount}轮复习于 ${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    }
+
+    return `复习过 ${reviewCount} 次`;
+}
+
+function getReviewWorkspaceDateKey(value = new Date()) {
+    const date = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+function getReviewWorkspaceCompletedAt(item) {
+    if (!item) return null;
+
+    const history = Array.isArray(item.reviewHistory) ? item.reviewHistory : [];
+    const reviewStage = Number(item.reviewStage);
+    if (!Number.isInteger(reviewStage) || reviewStage < 0) return null;
+
+    return history[reviewStage] || null;
+}
+
+function findReviewWorkspaceCategoryName(roundKey, problemId) {
+    const roundData = problemsData[roundKey];
+    if (!roundData || !Array.isArray(roundData.categories)) {
+        return '';
+    }
+
+    const targetId = problemId.toString();
+    const category = roundData.categories.find(item =>
+        Array.isArray(item.problems)
+        && item.problems.some(problemNum => problemNum.toString() === targetId)
+    );
+
+    return category?.name || '';
+}
+
+function collectReviewWorkspaceStageUniverseItems(stageIndex) {
+    if (!Number.isInteger(stageIndex) || stageIndex < 0) {
+        return [];
+    }
+
+    const items = [];
+    const seen = new Set();
+
+    getOrderedRoundKeys().forEach(roundKey => {
+        const roundProgress = userProgress?.[roundKey];
+        if (!roundProgress || typeof roundProgress !== 'object') {
+            return;
+        }
+
+        Object.entries(roundProgress).forEach(([problemId, progress]) => {
+            if (!progress || !progress.solvedAt || seen.has(problemId)) {
+                return;
+            }
+
+            const reviewCount = Number(progress.reviewCount) || 0;
+            if (reviewCount < stageIndex) {
+                return;
+            }
+
+            seen.add(problemId);
+            items.push({
+                id: problemId,
+                reviewCount,
+                reviewStage: stageIndex,
+                solvedAt: progress.solvedAt,
+                lastReviewAt: progress.lastReviewAt,
+                reviewHistory: Array.isArray(progress.reviewHistory) ? [...progress.reviewHistory] : [],
+                categoryName: findReviewWorkspaceCategoryName(roundKey, problemId)
+            });
+        });
+    });
+
+    return items;
+}
+
+function syncReviewedCardState(problemNum, reviewStage, newCount, todayStr) {
+    document.querySelectorAll(`.review-card-target[data-problem-id="${problemNum}"]`).forEach(node => {
+        if (node.dataset.reviewStage !== String(reviewStage)) return;
+        node.classList.add('reviewed');
+        node.dataset.reviewStage = String(reviewStage);
+        node.title = '✅ 已完成本次复盘';
+        const badge = node.querySelector('.review-count-badge, .review-workspace-card-badge, .review-card-meta');
+        if (badge) badge.textContent = `第${newCount}轮复习于 ${todayStr}`;
+        const doneButton = node.querySelector('.review-inline-complete-btn, .review-card-complete');
+        if (doneButton) {
+            doneButton.disabled = true;
+            doneButton.textContent = '✅ 本轮已完成';
+        }
+        node.style.transform = 'scale(1.1)';
+        setTimeout(() => { if (node) node.style.transform = ''; }, 200);
+    });
+}
+
+function markReviewCardDone(problemNum, reviewStage, targetNode, completeButton) {
+    if (targetNode && targetNode.classList.contains('reviewed')) return;
+
+    markProblemReviewed(null, problemNum);
+    if (currentUser) {
+        loadUserProgress();
+    }
+
+    const progress = getProblemProgress(problemNum);
+    if (!progress) return;
+
+    const newCount = progress.reviewCount || 0;
+    const reviewTime = progress.lastReviewAt || new Date().toISOString();
+    const reviewDate = new Date(reviewTime);
+    const todayStr = `${reviewDate.getFullYear()}-${String(reviewDate.getMonth() + 1).padStart(2,'0')}-${String(reviewDate.getDate()).padStart(2,'0')}`;
+
+    syncReviewedCardState(problemNum, reviewStage, newCount, todayStr);
+    syncReviewWorkspaceItemsFromProgress();
+    saveReviewWorkspaceState();
+    updateGlobalStats();
+    renderReviewContainer();
+    refreshReviewWorkspaceStats();
+}
+
+function buildReviewWorkspaceCardHTML(item, sourceLabel) {
+    const problemInfo = allProblems.find(p => p.id.toString() === item.id.toString());
+    if (!problemInfo) return null;
+
+    const isReviewedToday = isReviewItemCompletedToday(item);
+
+    const card = document.createElement('div');
+    card.className = `review-workspace-card review-card-target ${isReviewedToday ? 'reviewed' : ''}`;
+    card.dataset.problemId = item.id;
+    card.dataset.reviewStage = String(item.reviewStage);
+
+    const metaText = buildReviewMetaText(item.reviewCount, item.solvedAt, item.lastReviewAt, item.reviewHistory);
+    const stageName = `第${item.reviewStage + 1}轮复习`;
+    const categoryName = item.categoryName || '未分类';
+
+    card.innerHTML = `
+        <div class="review-workspace-card-header">
+            <div>
+                <div class="review-workspace-card-number">#${item.id}</div>
+                <div class="review-workspace-card-title">${problemInfo.title}</div>
+            </div>
+            <div class="review-workspace-card-badge">${isReviewedToday ? '✅ 今日已复习' : metaText}</div>
+        </div>
+        <div class="review-workspace-card-meta">
+            <span>${sourceLabel}</span>
+            <span>${categoryName}</span>
+            <span>${stageName}</span>
+        </div>
+    `;
+
+    const actions = document.createElement('div');
+    actions.className = 'review-workspace-card-actions';
+
+    const linkBtn = document.createElement('button');
+    linkBtn.className = 'review-card-link';
+    linkBtn.textContent = '🔗 去力扣';
+    linkBtn.onclick = () => {
+        if (problemInfo.url) window.open(problemInfo.url, '_blank');
+    };
+    actions.appendChild(linkBtn);
+
+    const completeBtn = document.createElement('button');
+    completeBtn.className = 'review-card-complete';
+    completeBtn.textContent = isReviewedToday ? '✅ 本轮已完成' : '标记已复习';
+    completeBtn.disabled = isReviewedToday;
+    completeBtn.onclick = () => markReviewCardDone(item.id, item.reviewStage, card, completeBtn);
+    actions.appendChild(completeBtn);
+
+    card.appendChild(actions);
+    return card;
+}
+
+function isReviewItemCompletedToday(item) {
+    const completedAt = getReviewWorkspaceCompletedAt(item);
+    if (!completedAt) return false;
+
+    return getReviewWorkspaceDateKey(completedAt) === getReviewWorkspaceDateKey();
+}
+
+function getReviewWorkspaceSummaryItems(stageIndex = reviewWorkspaceState.stage) {
+    return collectReviewWorkspaceStageUniverseItems(stageIndex).map(item => ({ ...item }));
+}
+
+function loadReviewWorkspaceDailyStatsFromCache() {
+    if (currentUser) {
+        loadUserProgress();
+    }
+
+    syncReviewWorkspaceItemsFromProgress();
+
+    const summaryItems = getReviewWorkspaceSummaryItems();
+    const pendingItems = collectStageReviewItems(reviewWorkspaceState.stage, 'all');
+    const todayCompletedItems = summaryItems
+        .filter(isReviewItemCompletedToday)
+        .sort((a, b) => {
+            const aTime = new Date(getReviewWorkspaceCompletedAt(a) || 0).getTime();
+            const bTime = new Date(getReviewWorkspaceCompletedAt(b) || 0).getTime();
+            return bTime - aTime;
+        });
+
+    return {
+        summaryItems,
+        todayCompletedItems,
+        pendingCount: pendingItems.length,
+        completedCount: Math.max(summaryItems.length - pendingItems.length, 0)
+    };
+}
+
+function getReviewWorkspaceOverviewItems() {
+    return getReviewWorkspaceSummaryItems();
+}
+
+function getReviewWorkspaceTodayCompletedItems() {
+    return loadReviewWorkspaceDailyStatsFromCache().todayCompletedItems;
+}
+
+function renderReviewWorkspaceRecentList(todayCompletedItems) {
+    const list = document.getElementById('reviewWorkspaceRecentList');
+    if (!list) return;
+
+    const title = document.querySelector('.review-workspace-summary-panel .review-workspace-summary-card:nth-child(2) h3');
+    if (title) {
+        title.textContent = '今日完成';
+    }
+
+    if (!todayCompletedItems.length) {
+        list.innerHTML = '<p class="review-workspace-recent-empty">今天还没有完成记录。</p>';
+        return;
+    }
+
+    list.innerHTML = todayCompletedItems.map(item => {
+        const problemInfo = allProblems.find(problem => problem.id.toString() === item.id.toString());
+        const titleText = problemInfo ? problemInfo.title : '题目已不存在';
+        return `
+            <div class="review-workspace-recent-item">
+                <strong>#${item.id}</strong>
+                <span>${titleText}</span>
+            </div>
+        `;
+    }).join('');
+}
+
+function refreshReviewWorkspaceStats() {
+    const progressNode = document.getElementById('reviewWorkspaceProgress');
+    const sourceNode = document.getElementById('reviewWorkspaceSourceLabel');
+    const pendingNode = document.getElementById('reviewWorkspacePendingCount');
+    const doneNode = document.getElementById('reviewWorkspaceDoneCount');
+    const categoryLabelNode = document.getElementById('reviewWorkspaceCategoryLabel');
+    const overviewCountNode = document.getElementById('reviewWorkspaceOverviewCount');
+    if (!progressNode || !sourceNode || !pendingNode || !doneNode || !categoryLabelNode || !overviewCountNode) return;
+
+    const { summaryItems, todayCompletedItems, pendingCount, completedCount } = loadReviewWorkspaceDailyStatsFromCache();
+    const sourceLabel = reviewWorkspaceState.stage >= 0 ? getStageSourceLabel(reviewWorkspaceState.stage) : '暂无数据';
+
+    progressNode.textContent = `${completedCount} / ${summaryItems.length}`;
+    sourceNode.textContent = sourceLabel;
+    categoryLabelNode.textContent = getReviewWorkspaceCategoryLabel();
+    overviewCountNode.textContent = `${summaryItems.length} 道题`;
+    pendingNode.textContent = String(pendingCount);
+    doneNode.textContent = String(todayCompletedItems.length);
+    saveReviewWorkspaceState();
+    renderReviewWorkspaceRecentList(todayCompletedItems);
+}
+
+function getFreshReviewWorkspaceItems() {
+    return collectStageReviewItems(reviewWorkspaceState.stage, reviewWorkspaceState.category)
+        .sort((a, b) => {
+            const aReviewed = a.reviewCount > a.reviewStage ? 1 : 0;
+            const bReviewed = b.reviewCount > b.reviewStage ? 1 : 0;
+            if (aReviewed !== bReviewed) return aReviewed - bReviewed;
+            return a.id - b.id;
+        })
+        .slice(0, reviewWorkspaceState.count);
+}
+
+function syncReviewWorkspaceItemsFromProgress() {
+    reviewWorkspaceState.items = reviewWorkspaceState.items
+        .map(hydrateReviewWorkspaceItem)
+        .filter(Boolean);
+}
+
+function drawReviewWorkspaceProblems(forceRefresh = true) {
+    const grid = document.getElementById('reviewWorkspaceGrid');
+    const empty = document.getElementById('reviewWorkspaceEmpty');
+    const desc = document.getElementById('reviewWorkspaceDesc');
+    if (!grid || !empty || !desc) return;
+
+    if (reviewWorkspaceState.stage === -1) {
+        reviewWorkspaceState.items = [];
+        saveReviewWorkspaceState();
+        grid.innerHTML = '';
+        empty.style.display = 'block';
+        return;
+    }
+
+    const sourceLabel = reviewWorkspaceState.category === 'all'
+        ? getStageSourceLabel(reviewWorkspaceState.stage)
+        : `${getStageSourceLabel(reviewWorkspaceState.stage)} · ${getReviewWorkspaceCategoryLabel()}`;
+
+    if (forceRefresh || !reviewWorkspaceState.items.length) {
+        reviewWorkspaceState.items = getFreshReviewWorkspaceItems();
+    } else {
+        syncReviewWorkspaceItemsFromProgress();
+        if (!reviewWorkspaceState.items.length) {
+            reviewWorkspaceState.items = getFreshReviewWorkspaceItems();
+        }
+    }
+
+    const items = reviewWorkspaceState.items;
+    saveReviewWorkspaceState();
+    desc.textContent = `当前已按 ${sourceLabel} 抽取 ${items.length} 道题。先去力扣做题，再回来标记本轮复习。`;
+
+    grid.innerHTML = '';
+    if (!items.length) {
+        empty.style.display = 'block';
+    } else {
+        empty.style.display = 'none';
+        items.forEach(item => {
+            const card = buildReviewWorkspaceCardHTML(item, sourceLabel);
+            if (card) grid.appendChild(card);
+        });
+    }
+}
+
+function renderReviewWorkspaceCategoryGroups(roundGroups, container) {
+    if (!container) return;
+
+    if (!roundGroups.length) {
+        container.innerHTML = '<p class="review-workspace-group-empty">当前条件下暂无分类题目。</p>';
+        return;
+    }
+
+    container.innerHTML = '';
+
+    roundGroups.forEach(rg => {
+        const roundGroup = document.createElement('details');
+        roundGroup.className = 'review-workspace-round-group';
+        roundGroup.style.marginBottom = '1rem';
+        roundGroup.style.border = '1px solid #ffe0b2';
+        roundGroup.style.borderRadius = '12px';
+        roundGroup.style.background = '#fffdf8';
+        roundGroup.style.overflow = 'hidden';
+
+        roundGroup.innerHTML = `
+            <summary style="padding: 1rem; background: #fff8e1; cursor: pointer; font-weight: bold; color: #ef6c00; display: flex; justify-content: space-between; align-items: center; user-select: none;">
+                <span>📚 ${rg.name} (大分类)</span>
+                <span class="review-workspace-category-group-badge" style="background:rgba(255, 152, 0, 0.2); padding:2px 8px; border-radius:12px; font-size:0.8rem; color: #e65100;">共 ${rg.totalProbs} 题 ▼</span>
+            </summary>
+            <div class="review-workspace-round-group-body" style="padding: 0.5rem 1rem;"></div>
+        `;
+
+        const roundBody = roundGroup.querySelector('.review-workspace-round-group-body');
+        if (!roundBody) return;
+
+        rg.categories.forEach(category => {
+            const categoryGroup = document.createElement('details');
+            categoryGroup.className = 'review-workspace-category-group';
+            categoryGroup.style.marginBottom = '0.8rem';
+            categoryGroup.style.borderBottom = '1px dashed #ffcc80';
+
+            categoryGroup.innerHTML = `
+                <summary class="review-workspace-category-group-header" style="padding: 0.5rem; cursor:pointer; user-select:none; display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <h4 style="margin:0; color:#5d4037;">${category.name}</h4>
+                    </div>
+                    <span class="review-workspace-category-group-badge" style="background:#e0e0e0; padding:2px 8px; border-radius:12px; font-size:0.8rem;">${category.problems.length} 题</span>
+                </summary>
+                <div class="review-workspace-category-problems" style="margin-top:0.5rem; padding-bottom:0.5rem;"></div>
+            `;
+
+            const problemsContainer = categoryGroup.querySelector('.review-workspace-category-problems');
+            if (!problemsContainer) {
+                roundBody.appendChild(categoryGroup);
+                return;
+            }
+
+            const sourceLabel = `${rg.name} · ${category.name}`;
+            category.problems.forEach(problem => {
+                const card = buildReviewWorkspaceCardHTML(problem, sourceLabel);
+                if (card) {
+                    problemsContainer.appendChild(card);
+                }
+            });
+
+            if (!problemsContainer.children.length) {
+                problemsContainer.innerHTML = '<p class="review-workspace-group-empty">当前分类暂无题目。</p>';
+            }
+
+            roundBody.appendChild(categoryGroup);
+        });
+
+        container.appendChild(roundGroup);
+    });
+}
+function renderReviewWorkspace() {
+    const groupedContainer = document.getElementById('reviewWorkspaceGroupedContainer');
+    const countSelect = document.getElementById('reviewWorkspaceCount');
+    if (!groupedContainer || !countSelect) return;
+
+    syncReviewWorkspaceStageOptions();
+    
+    if (reviewWorkspaceState.stage === -1) {
+        groupedContainer.innerHTML = '<p class="review-workspace-group-empty">先去题库打卡吧，暂无可复习题目。</p>';
+        drawReviewWorkspaceProblems(false);
+        refreshReviewWorkspaceStats();
+        return;
+    }
+    
+    syncReviewWorkspaceStageCategoryOptions(reviewWorkspaceState.stage);
+    countSelect.value = String(reviewWorkspaceState.count);
+    renderReviewWorkspaceCountPicker();
+
+    const groupedCategories = getStageGroupedCategories(reviewWorkspaceState.stage);
+
+    groupedContainer.innerHTML = '';
+    renderReviewWorkspaceCategoryGroups(groupedCategories, groupedContainer);
+    drawReviewWorkspaceProblems(false);
+    saveReviewWorkspaceState();
+    refreshReviewWorkspaceStats();
+}
+
+function handleReviewWorkspaceStageChange() {
+    const select = document.getElementById('reviewWorkspaceStageSelect');
+    if (!select) return;
+    reviewWorkspaceState.stage = Number(select.value);
+    reviewWorkspaceState.category = 'all';
+    reviewWorkspaceState.items = [];
+    renderReviewWorkspace();
+}
+
+function handleReviewWorkspaceCategoryChange() {
+    const select = document.getElementById('reviewWorkspaceCategorySelect');
+    if (!select) return;
+    reviewWorkspaceState.category = select.value;
+    reviewWorkspaceState.items = [];
+    renderReviewWorkspaceCategoryTree(getReviewWorkspaceStageCategoryOptions(reviewWorkspaceState.stage));
+
+    drawReviewWorkspaceProblems(true);
+
+    saveReviewWorkspaceState();
+    refreshReviewWorkspaceStats();
+}
+
+function handleReviewWorkspaceCountChange(skipPickerSync) {
+    const select = document.getElementById('reviewWorkspaceCount');
+    if (!select) return;
+    reviewWorkspaceState.count = Number(select.value) || 10;
+    reviewWorkspaceState.items = [];
+    if (!skipPickerSync) {
+        renderReviewWorkspaceCountPicker();
+    }
+    
+    drawReviewWorkspaceProblems(true);
+    
+    saveReviewWorkspaceState();
+    refreshReviewWorkspaceStats();
+}
+
+function resolveReviewWorkspaceTarget(forceTarget, hierarchy) {
+    if (typeof forceTarget === 'number' && hierarchy[forceTarget]) {
+        return { stage: forceTarget, category: 'all' };
+    }
+
+    if (typeof forceTarget !== 'string') {
+        return null;
+    }
+
+    const normalized = forceTarget.trim();
+    const stageMatch = normalized.match(/^stage-(\d+)/);
+    if (stageMatch) {
+        const stageIndex = Number(stageMatch[1]);
+        return hierarchy[stageIndex] ? { stage: stageIndex, category: 'all' } : null;
+    }
+
+    const stageIndex = hierarchy.findIndex(stageItem =>
+        (stageItem.roundGroups || []).some(group => group.roundKey === normalized)
+    );
+
+    if (stageIndex === -1) {
+        return null;
+    }
+
+    return {
+        stage: stageIndex,
+        category: `${normalized}::all`
+    };
+}
+
+function openReviewWorkspace(forceStageIndex) {
+    const workspace = document.getElementById('reviewWorkspace');
+    if (!workspace) return;
+
+    loadReviewWorkspaceState();
+    
+    const hierarchy = generateAllReviewProblemsGrouped();
+    if (hierarchy.length > 0) {
+        const forcedTarget = resolveReviewWorkspaceTarget(forceStageIndex, hierarchy);
+
+        if (forcedTarget) {
+            reviewWorkspaceState.stage = forcedTarget.stage;
+            reviewWorkspaceState.category = forcedTarget.category;
+            reviewWorkspaceState.items = [];
+        } else if (reviewWorkspaceState.stage >= hierarchy.length || reviewWorkspaceState.stage < 0) {
+            reviewWorkspaceState.stage = 0;
+            reviewWorkspaceState.category = 'all';
+            reviewWorkspaceState.items = [];
+        }
+    } else {
+        reviewWorkspaceState.stage = -1;
+        reviewWorkspaceState.items = [];
+    }
+
+    workspace.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    reviewWorkspaceState.isOpen = true;
+    saveReviewWorkspaceState();
+    renderReviewWorkspace();
+}
+
+function openReviewWorkspaceFromModal() {
+    closeReviewModal();
+    openReviewWorkspace();
+}
+
+function closeReviewWorkspace() {
+    const workspace = document.getElementById('reviewWorkspace');
+    if (!workspace) return;
+
+    workspace.style.display = 'none';
+    document.body.style.overflow = '';
+    reviewWorkspaceState.isOpen = false;
+    saveReviewWorkspaceState();
+}
+
+function renderReviewWorkspaceGroupedHierarchy(hierarchy, container) {
+    container.innerHTML = '';
+
+    hierarchy.forEach(stage => {
+        const stageWrapper = document.createElement('div');
+        stageWrapper.className = 'stage-wrapper';
+        stageWrapper.style.marginBottom = '1.5rem';
+
+        const stageLabel = document.createElement('div');
+        stageLabel.style.cssText = "color: #e65100; margin-bottom: 0.8rem; font-size: 1.05rem; font-weight: bold; padding: 0.6rem 0.8rem; border-left: 4px solid #ff9800; background: #fff8e1; border-radius: 6px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none;";
+
+        const totalProbs = stage.roundGroups.reduce((sum, rg) => sum + rg.problems.length, 0);
+        stageLabel.innerHTML = `
+            <span>📈 ${stage.name} <span style="font-size: 0.85rem; color: #d84315; font-weight: normal; margin-left: 0.5rem;">(共 ${totalProbs} 题)</span></span>
+            <span class="stage-icon" style="transition: transform 0.3s; font-size: 0.8rem; color: #e65100;">▼</span>
+        `;
+
+        const contentDiv = document.createElement('div');
+        let isExpanded = true;
+        contentDiv.style.display = 'block';
+
+        stageLabel.onclick = () => {
+            isExpanded = !isExpanded;
+            contentDiv.style.display = isExpanded ? 'block' : 'none';
+            stageLabel.querySelector('.stage-icon').style.transform = isExpanded ? 'rotate(0deg)' : 'rotate(-90deg)';
+        };
+
+        stage.roundGroups.forEach(group => {
+            const groupDiv = document.createElement('div');
+            groupDiv.className = 'review-group expanded';
+
+            const header = document.createElement('div');
+            header.className = 'review-group-header';
+            header.innerHTML = `
+                <div class="review-group-title">
+                    <span>📁 ${group.name}</span>
+                    <span class="review-group-badge">${group.problems.length} 题</span>
+                </div>
+                <div class="review-group-icon">▼</div>
+            `;
+
+            const groupContent = document.createElement('div');
+            groupContent.className = 'review-group-content';
+            groupContent.style.display = 'block';
+
+            let groupExpanded = true;
+            header.onclick = () => {
+                groupExpanded = !groupExpanded;
+                groupContent.style.display = groupExpanded ? 'block' : 'none';
+                const icon = header.querySelector('.review-group-icon');
+                if (icon) icon.style.transform = groupExpanded ? 'rotate(0deg)' : 'rotate(-90deg)';
+            };
+
+            (group.categories || []).forEach(category => {
+                const categoryWrapper = document.createElement('details');
+                categoryWrapper.className = 'review-workspace-category-block';
+                categoryWrapper.open = true;
+                categoryWrapper.innerHTML = `
+                    <summary class="review-workspace-category-summary">
+                        <span>📂 ${category.name}</span>
+                        <span class="review-group-badge">${category.problems.length} 题</span>
+                    </summary>
+                `;
+
+                const problemGrid = document.createElement('div');
+                problemGrid.className = 'review-problems-grid';
+                category.problems.forEach(item => {
+                    const card = buildReviewCardHTML(item.id, item.reviewCount, item.solvedAt, item.lastReviewAt, item.reviewHistory, item.reviewStage);
+                    if (card) problemGrid.appendChild(card);
+                });
+                categoryWrapper.appendChild(problemGrid);
+                groupContent.appendChild(categoryWrapper);
+            });
+
+            groupDiv.appendChild(header);
+            groupDiv.appendChild(groupContent);
+            contentDiv.appendChild(groupDiv);
+        });
+
+        stageWrapper.appendChild(stageLabel);
+        stageWrapper.appendChild(contentDiv);
+        container.appendChild(stageWrapper);
+    });
+}
+
 function openReviewModal() {
     const modal = document.getElementById('reviewModal');
     if(!modal) return;
@@ -633,13 +1701,30 @@ function renderAllReviewGroups(hierarchy) {
         header.className = 'review-group-header';
         header.onclick = () => groupDiv.classList.toggle('expanded');
 
+        const launchBtn = document.createElement('button');
+        launchBtn.className = 'review-group-workspace-btn';
+        launchBtn.textContent = '进入工作台';
+        launchBtn.title = `按当前分组进入${group.name}工作台`;
+        launchBtn.onclick = (e) => {
+            e.stopPropagation();
+            closeReviewModal();
+            openReviewWorkspace(group.roundKey);
+        };
+
         header.innerHTML = `
             <div class="review-group-title">
                 <span>${icon} ${group.name}</span>
                 <span class="review-group-badge">${group.problems.length} 题</span>
             </div>
-            <div class="review-group-icon">▼</div>
+            <div class="review-group-header-actions">
+                <div class="review-group-icon">▼</div>
+            </div>
         `;
+
+        const headerActions = header.querySelector('.review-group-header-actions');
+        if (headerActions) {
+            headerActions.prepend(launchBtn);
+        }
 
         const content = document.createElement('div');
         content.className = 'review-group-content review-problems-grid';
@@ -664,10 +1749,27 @@ function renderAllReviewGroups(hierarchy) {
 
         const totalProbs = stage.roundGroups.reduce((sum, rg) => sum + rg.problems.length, 0);
 
+        const stageLaunchBtn = document.createElement('button');
+        stageLaunchBtn.className = 'review-stage-workspace-btn';
+        stageLaunchBtn.textContent = '进入本轮工作台';
+        stageLaunchBtn.title = `按当前阶段进入${stage.name}工作台`;
+        stageLaunchBtn.onclick = (e) => {
+            e.stopPropagation();
+            closeReviewModal();
+            openReviewWorkspace(stage.stageKey || `stage-${stage.stage}-all`);
+        };
+
         stageLabel.innerHTML = `
             <span>📈 ${stage.name} <span style="font-size: 0.85rem; color: #d84315; font-weight: normal; margin-left: 0.5rem;">(共 ${totalProbs} 题)</span></span>
-            <span class="stage-icon" style="transition: transform 0.3s; font-size: 0.8rem; color: #e65100;">▼</span>
+            <span class="stage-label-actions">
+                <span class="stage-icon" style="transition: transform 0.3s; font-size: 0.8rem; color: #e65100;">▼</span>
+            </span>
         `;
+
+        const stageActions = stageLabel.querySelector('.stage-label-actions');
+        if (stageActions) {
+            stageActions.prepend(stageLaunchBtn);
+        }
 
         const contentDiv = document.createElement('div');
         let isExpanded = false;
@@ -741,96 +1843,61 @@ function buildReviewCardHTML(problemNum, reviewCount, solvedAt, lastReviewAt, re
     const problemInfo = allProblems.find(p => p.id.toString() === problemNum.toString());
     if (!problemInfo) return null;
 
+    const history = Array.isArray(reviewHistory) ? reviewHistory : [];
+    const isReviewedToday = isReviewItemCompletedToday({ reviewHistory: history, reviewStage });
+
+    let badgeText = `复习过 ${reviewCount} 次`;
+    if (reviewCount === 0 && solvedAt) {
+        const d = new Date(solvedAt);
+        badgeText = `首刷于 ${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    } else if (reviewCount >= 1) {
+        const previousStageTime = history[reviewCount - 1] || lastReviewAt;
+        if (previousStageTime) {
+            const d = new Date(previousStageTime);
+            badgeText = `第${reviewCount}轮复习于 ${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        }
+    }
+
     const wrapper = document.createElement('div');
     wrapper.className = 'review-problems-wrap';
-
-    const history = Array.isArray(reviewHistory) ? reviewHistory : [];
-    const isReviewedToday = reviewCount > reviewStage
-        && history[reviewStage]
-        && new Date(history[reviewStage]).toDateString() === new Date().toDateString();
 
     const card = document.createElement('div');
     card.className = `review-problem-item review-card-target ${isReviewedToday ? 'reviewed' : ''}`;
     card.dataset.problemId = problemNum;
     card.dataset.reviewStage = String(reviewStage);
-    card.title = isReviewedToday ? "✅ 今日已完成本次复盘" : "做完这道题了吗？点击标记为已复盘！";
-    
-    // 构建 badge 文本：
-    // reviewCount = 0 => 首刷日期
-    // reviewCount >= 1 => 显示上一轮复习时间（从 reviewHistory 里取最后一条）
-    let badgeText = `复习过 ${reviewCount} 次`;
-    if (reviewCount === 0 && solvedAt) {
-        const d = new Date(solvedAt);
-        badgeText = `首刷于 ${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    } else if (reviewCount >= 1) {
-        // 当前阶段卡片展示“上一轮完成时间”，而不是最后一次复习时间
-        const previousStageTime = history[reviewCount - 1] || lastReviewAt;
-        if (previousStageTime) {
-            const d = new Date(previousStageTime);
-            badgeText = `第${reviewCount}轮复习于 ${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-        }
-    }
-    
+    card.title = isReviewedToday ? '✅ 今日已完成本次复盘' : '做完这道题了吗？点击标记为已复盘！';
+
     card.innerHTML = `
-        <div class="review-count-badge">${badgeText}</div>
+        <div class="review-card-meta-row">
+            <span class="review-card-meta">${badgeText}</span>
+        </div>
         <div class="problem-content">
             <div class="problem-number">${problemNum}</div>
             <div class="problem-title">${problemInfo.title}</div>
         </div>
+        <div class="review-card-footer">
+            ${problemInfo.url ? '<button class="review-inline-link-btn" type="button">去力扣</button>' : ''}
+            <button class="review-inline-complete-btn" type="button" ${isReviewedToday ? 'disabled' : ''}>${isReviewedToday ? '本轮已完成' : '标记已复习'}</button>
+        </div>
     `;
-    
-    card.onclick = (e) => {
-        e.stopPropagation();
-        if (card.classList.contains('reviewed')) return;
 
-        markProblemReviewed(null, problemNum); // 数据落库
-
-        const progress = getProblemProgress(problemNum);
-        if (!progress) return;
-
-        const newCount = progress.reviewCount || (reviewCount + 1);
-        const reviewTime = progress.lastReviewAt || new Date().toISOString();
-        const reviewDate = new Date(reviewTime);
-        const todayStr = `${reviewDate.getFullYear()}-${String(reviewDate.getMonth() + 1).padStart(2,'0')}-${String(reviewDate.getDate()).padStart(2,'0')}`;
-
-        card.classList.add('reviewed');
-        card.dataset.reviewStage = String(reviewStage);
-        card.title = "✅ 已完成本次复盘";
-        const currentBadge = card.querySelector('.review-count-badge');
-        if (currentBadge) currentBadge.textContent = `第${newCount}轮复习于 ${todayStr}`;
-        card.style.transform = 'scale(1.1)';
-        setTimeout(() => { if (card) card.style.transform = ''; }, 200);
-
-        // 【核心体验】同步更新推荐区等其他同题卡片，但不覆盖当前卡片的即时视觉反馈
-        document.querySelectorAll(`.review-card-target[data-problem-id="${problemNum}"]`).forEach(node => {
-            if (node === card) return;
-            if (node.dataset.reviewStage !== String(reviewStage)) return;
-            node.classList.add('reviewed');
-            node.dataset.reviewStage = String(reviewStage);
-            node.title = "✅ 已完成本次复盘";
-            const badge = node.querySelector('.review-count-badge');
-            if (badge) badge.textContent = `第${newCount}轮复习于 ${todayStr}`;
-            node.style.transform = 'scale(1.1)';
-            setTimeout(() => { if (node) node.style.transform = ''; }, 200);
-        });
-
-        updateGlobalStats(); // 刷新今日答题统计
-        renderReviewContainer();
-    };
-
-    if (problemInfo.url) {
-        const linkBtn = document.createElement('button');
-        linkBtn.className = 'link-btn';
-        linkBtn.innerHTML = '🔗';
-        linkBtn.title = '跳转到题目页面';
+    const linkBtn = card.querySelector('.review-inline-link-btn');
+    if (linkBtn && problemInfo.url) {
         linkBtn.onclick = (e) => {
             e.stopPropagation();
             window.open(problemInfo.url, '_blank');
         };
-        // 还原回挂载至拥有 position: relative 的 wrapper，防止被 overflow: hidden 裁剪，且 CSS 已修复 hover 支持
-        wrapper.appendChild(linkBtn);
     }
-    
+
+    const completeBtn = card.querySelector('.review-inline-complete-btn');
+    if (completeBtn) {
+        completeBtn.onclick = (e) => {
+            e.stopPropagation();
+            if (card.classList.contains('reviewed')) return;
+            markReviewCardDone(problemNum, reviewStage, card, completeBtn);
+        };
+    }
+
     wrapper.appendChild(card);
     return wrapper;
 }
@@ -929,7 +1996,7 @@ function initFloatingReviewBtn() {
             btn.setAttribute('data-moved', 'false'); // reset
             return;
         }
-        openReviewModal();
+        openReviewWorkspace();
     });
 
     window.addEventListener('resize', () => {
