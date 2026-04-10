@@ -131,12 +131,16 @@ function generateDetailContentHTML(problems, showDates = false) {
                     const problemInfo = allProblems.find(p => p.id.toString() === problem.id.toString());
                     const difficultyClass = problem.difficulty === '简单' ? 'easy' : problem.difficulty === '中等' ? 'medium' : 'hard';
                     const datesText = showDates ? `<span class="problem-dates">${problem.dates.map(d => `${parseInt(d.split('-')[2])}日`).join(', ')}</span>` : '';
+                    const reviewStageText = problem.eventType === 'review' && problem.reviewStage
+                        ? `<span class="problem-dates">第${problem.reviewStage}轮复习</span>`
+                        : '';
 
                     html += `
                         <div class="problem-detail-item">
                             <span class="problem-number">${problem.id}</span>
                             <span class="problem-title-detail">${problemInfo.title}</span>
                             <span class="problem-difficulty ${difficultyClass}">${problem.difficulty}</span>
+                            ${reviewStageText}
                             ${datesText}
                             ${problemInfo.url ? `<button class="link-problem-btn" onclick="window.open('${problemInfo.url}', '_blank')" title="跳转到题目页面">🔗</button>` : ''}
                             <button class="copy-problem-btn" onclick="copyProblemId('${problem.id}', event)" title="复制题号">📋</button>
